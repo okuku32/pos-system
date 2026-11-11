@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useShop } from './ShopContext';
 import { STAGE, ksh, orderKey, stepsFor } from './shopApi';
+import { STORE_INFO } from './storeInfo';
 
 export default function MyOrders() {
   const { customer, ready, orders, refreshOrders } = useShop();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    document.title = 'My orders · Ordersasa';
+    document.title = `My orders · ${STORE_INFO.name}`;
     refreshOrders().catch(() => {}).finally(() => setLoading(false));
   }, [refreshOrders]);
 

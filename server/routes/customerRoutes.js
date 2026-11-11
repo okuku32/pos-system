@@ -14,6 +14,8 @@ const authLimit = rateLimit({
 
 r.post('/register', authLimit, c.register);
 r.post('/login', authLimit, c.login);
+r.post('/forgot-password', authLimit, c.forgotPassword);
+r.post('/reset-password', authLimit, c.resetPassword);
 r.post('/oauth/google', authLimit, c.google);
 r.route('/me').get(protectCustomer, c.me).put(protectCustomer, c.updateMe);
 r.get('/orders', protectCustomer, c.myOrders);

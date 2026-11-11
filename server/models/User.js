@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../tenancy/context');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema(
@@ -21,4 +22,5 @@ userSchema.methods.matchPassword = function (entered) {
   return bcrypt.compare(entered, this.password);
 };
 
-module.exports = mongoose.model('User', userSchema);
+// Lives in each client's own database (see tenancy/context.js)
+module.exports = tenantModel('User', userSchema);

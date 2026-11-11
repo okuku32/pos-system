@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../tenancy/context');
 
 // Small key/value store for system state (e.g. the eTIMS device communication key and invoice counter)
 const settingSchema = new mongoose.Schema(
@@ -22,4 +23,5 @@ settingSchema.statics.next = async function (key) {
   return s.value;
 };
 
-module.exports = mongoose.model('Setting', settingSchema);
+// Lives in each client's own database (see tenancy/context.js)
+module.exports = tenantModel('Setting', settingSchema);

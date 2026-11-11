@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import api, { errMsg } from '../api';
 import { useAuth } from '../context/AuthContext';
 import GoogleButton from '../components/GoogleButton';
+import BrandName from '../components/BrandName';
 
 export default function Login() {
   const { user, login, setup, loginWithGoogle } = useAuth();
@@ -42,7 +43,7 @@ export default function Login() {
   return (
     <div className="center-screen">
       <form className="card login" onSubmit={submit}>
-        <h1>Order<span style={{ color: "#ff5a1f" }}>sasa</span> POS</h1>
+        <h1><BrandName accent="#ff5a1f" /> POS</h1>
         <p className="muted">{needsSetup ? 'Create the first admin account' : 'Sign in to continue'}</p>
         {needsSetup && (
           <label>

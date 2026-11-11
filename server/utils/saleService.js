@@ -56,6 +56,7 @@ async function deductStock(sale) {
   await Product.bulkWrite(
     sale.items.map((i) => ({ updateOne: { filter: { _id: i.product }, update: { $inc: { stock: -i.quantity } } } }))
   );
+  require('./cache').invalidate('catalog'); // shop shows fresh stock straight away
 }
 
 // Everything that happens once a sale is actually paid

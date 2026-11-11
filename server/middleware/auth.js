@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { tokenMatchesTenant } = require('../tenancy/tokens');
 
 exports.protect = async (req, res, next) => {
   const header = req.headers.authorization || '';
@@ -8,6 +9,8 @@ exports.protect = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     if (decoded.typ === 'customer') return res.status(401).json({ message: 'Staff login required' });
+    if (decoded.typ === 'platform') return res.status(401).json({ message: 'Use a staff login for this shop' });
+    if (!tokenMatchesTenant(decoded, req.tenant)) return res.status(401).json({ message: 'This login belongs to a different shop. Please log in again.' });
     req.user = await User.findById(decoded.id);
     if (!req.user || !req.user.active) return res.status(401).json({ message: 'User not found or disabled' });
     next();

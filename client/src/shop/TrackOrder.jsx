@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import shopApi, { STAGE, errMsg, firstName, ksh, orderKey, stepsFor } from './shopApi';
+import { STORE_INFO } from './storeInfo';
 import { useShop } from './ShopContext';
 import { connectSocket, chime } from '../realtime';
 
@@ -28,7 +29,7 @@ export default function TrackOrder() {
   const now = useNow(15000);
 
   useEffect(() => {
-    document.title = 'Track your order · Ordersasa';
+    document.title = `Track your order · ${STORE_INFO.name}`;
     if (params.get('placed')) setParams({}, { replace: true });
     shopApi.get(`/shop/orders/${token}`).then((r) => setOrder(r.data)).catch((e) => setError(errMsg(e)));
     const socket = connectSocket({ track: token });

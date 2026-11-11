@@ -8,7 +8,8 @@ const mpesa = require('../utils/mpesa');
 const etims = require('../utils/etims');
 const KRA_PIN = /^[AP]\d{9}[A-Z]$/i; // e.g. P051234567X
 
-const TAX_RATE = Number(process.env.TAX_RATE || 0);
+const { settings } = require('../tenancy/tenants');
+const taxRate = () => settings().taxRate || 0; // per client
 // Cashiers never see cost price or profit
 const HIDDEN_FOR_CASHIER = '-items.cost -totalCost -profit';
 const projection = (user) => (user.role === 'admin' ? '' : HIDDEN_FOR_CASHIER);
@@ -27,7 +28,7 @@ exports.create = asyncHandler(async (req, res) => {
   }
 
   const items = await buildItems(cart);
-  const totals = computeTotals(items, discount, TAX_RATE);
+  const totals = computeTotals(items, discount, taxRate());
   const base = { items, ...totals, paymentMethod, cashier: req.user._id, order: order?._id, customerTin: customerTin || undefined, customerName: req.body.customerName ? String(req.body.customerName).slice(0, 60) : order?.customer?.name };
 
   if (paymentMethod === 'cash') {

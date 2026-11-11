@@ -8,6 +8,14 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Opened from the platform console's "Support login": use that one-hour token
+    const url = new URL(window.location.href);
+    const supportToken = url.searchParams.get('supportToken');
+    if (supportToken) {
+      localStorage.setItem('pos_token', supportToken);
+      url.searchParams.delete('supportToken');
+      window.history.replaceState({}, '', url.pathname + url.search);
+    }
     if (!localStorage.getItem('pos_token')) return setLoading(false);
     api
       .get('/auth/me')

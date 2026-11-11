@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../tenancy/context');
 
 // A customer order: saved at the counter (held / pickup / delivery) and paid later.
 // Paying an order creates a Sale linked back to it; the order is then 'completed'.
@@ -64,4 +65,9 @@ orderSchema.pre('save', function () {
   }
 });
 
-module.exports = mongoose.model('Order', orderSchema);
+// Lives in each client's own database (see tenancy/context.js)
+// Fast lookups: open orders list, a customer's own orders
+orderSchema.index({ status: 1, createdAt: -1 });
+orderSchema.index({ customerAccount: 1, createdAt: -1 });
+
+module.exports = tenantModel('Order', orderSchema);

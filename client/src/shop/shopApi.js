@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Separate API client for the customer shop: its own token, and no redirect to the staff login
 export const SHOP_TOKEN = 'ordersasa_token';
-export const STORE = import.meta.env.VITE_STORE_NAME || 'Ordersasa';
+export { STORE_INFO } from './storeInfo'; // the current client's name and location
 
 const shopApi = axios.create({ baseURL: import.meta.env.VITE_API_URL || '/api' });
 

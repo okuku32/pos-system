@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import api, { errMsg } from '../api';
 import { useAuth } from '../context/AuthContext';
 import EtimsSettings from '../components/EtimsSettings';
+import BusinessSettings from '../components/BusinessSettings';
 
 const MODE_TEXT = {
   smtp: { label: 'Sending real emails', cls: 'success-text' },
@@ -53,11 +54,11 @@ export default function Settings() {
   return (
     <div>
       <h2>Settings</h2>
+      <BusinessSettings />
       <div className="card" style={{ maxWidth: 680 }}>
         <h3>M-Pesa (Daraja) connection</h3>
         <p className="muted">
-          Credentials are set in <code>server/.env</code> (MPESA_CONSUMER_KEY, MPESA_CONSUMER_SECRET, MPESA_SHORTCODE,
-          MPESA_PASSKEY, MPESA_CALLBACK_URL). Restart the server after changing them.
+          Check that the M-Pesa keys saved above work.
         </p>
         <button className="btn mpesa" onClick={test} disabled={busy}>
           {busy ? 'Testing…' : 'Test Daraja credentials'}

@@ -8,6 +8,7 @@ const { formatPhone } = require('../utils/mpesa');
 const { emitOrder, ownerOrder } = require('../utils/realtime');
 const notify = require('../utils/notify');
 const { withPricing } = require('../utils/pricing');
+const { cached } = require('../utils/cache');
 
 const MAX_LINES = 50;
 const MAX_QTY = 100;
@@ -15,14 +16,16 @@ const clean = (s, max) => String(s || '').replace(/[<>]/g, '').trim().slice(0, m
 
 // GET /api/shop/products — only what customers need (never cost price)
 exports.products = asyncHandler(async (req, res) => {
-  const products = await Product.find({ active: true, stock: { $gt: 0 } })
-    .select('name category price discountPercent stock image')
-    .sort('name');
-  res.json(products.map(withPricing));
+  const products = await cached('catalog:products', 20000, async () =>
+    (await Product.find({ active: true, stock: { $gt: 0 } }).select('name category description price discountPercent stock image').sort('name').lean()).map(withPricing)
+  );
+  res.set('Cache-Control', 'public, max-age=10'); // browsers may reuse it briefly too
+  res.json(products);
 });
 
 exports.categories = asyncHandler(async (req, res) => {
-  res.json((await Product.distinct('category', { active: true, stock: { $gt: 0 } })).sort());
+  res.set('Cache-Control', 'public, max-age=30');
+  res.json(await cached('catalog:categories', 30000, async () => (await Product.distinct('category', { active: true, stock: { $gt: 0 } })).sort()));
 });
 
 // POST /api/shop/orders { items:[{productId,quantity}], customer:{name,phone,address}, type:'pickup'|'delivery', notes }

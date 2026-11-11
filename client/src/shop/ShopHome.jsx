@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import ProductSheet from './ProductSheet';
 import toast from 'react-hot-toast';
 import shopApi, { errMsg, firstName, ksh, store, STAGE, orderKey, unitPrice, isDiscounted } from './shopApi';
+import { STORE_INFO } from './storeInfo';
 import { useShop } from './ShopContext';
 import ProductImage from '../components/ProductImage';
 
@@ -16,12 +18,31 @@ export default function ShopHome() {
   const { customer, cart, setQty, activeOrder } = useShop();
   const [products, setProducts] = useState(() => store.get('ordersasa_products', []));
   const [loading, setLoading] = useState(!products.length);
-  const [category, setCategory] = useState('All');
+  const [params, setParams] = useSearchParams();
+  const [category, setCategoryState] = useState(params.get('category') || 'All');
+  const [viewing, setViewing] = useState(null); // product details sheet
   const [q, setQ] = useState('');
   const gridRef = useRef();
 
+  // Keep the chosen category in the address (?category=Dairy), so the phone menu can open a category
+  const setCategory = (c) => {
+    setCategoryState(c);
+    const next = new URLSearchParams(params);
+    if (c && c !== 'All') next.set('category', c);
+    else next.delete('category');
+    setParams(next, { replace: true });
+  };
   useEffect(() => {
-    document.title = 'Ordersasa · Shop online, delivered sasa hivi';
+    const c = params.get('category');
+    if (c && c !== category) {
+      setCategoryState(c);
+      setTimeout(() => gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+    } else if (!c && category !== 'All' && params.toString() === '') setCategoryState('All');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params]);
+
+  useEffect(() => {
+    document.title = `${STORE_INFO.name} · Shop online`;
     shopApi
       .get('/shop/products')
       .then((r) => {
@@ -53,7 +74,7 @@ export default function ShopHome() {
               </>
             ) : (
               <>
-                <span className="os-eyebrow">Karibu Ordersasa 👋</span>
+                <span className="os-eyebrow">Karibu {STORE_INFO.name} 👋</span>
                 <h1>Your everyday shopping, <span className="os-hl">delivered sasa hivi.</span></h1>
                 <p>Fresh groceries, drinks and household essentials from our shelves to your door. Order in minutes, follow every step live, and pay with M-Pesa or cash when it arrives.</p>
               </>
@@ -120,9 +141,10 @@ export default function ShopHome() {
                 const qty = cart[p._id] || 0;
                 return (
                   <article key={p._id} className="os-card" style={{ animationDelay: `${Math.min(i, 12) * 25}ms` }}>
-                    <div className="os-card-img"><ProductImage product={p} size={160} /></div>
+                    <button type="button" className="os-card-img" onClick={() => setViewing(p)} aria-label={`View ${p.name}`}><ProductImage product={p} size={160} /></button>
                     <span className="os-card-cat">{p.category}</span>
-                    <h3 className="os-card-name">{p.name}</h3>
+                    <h3 className="os-card-name"><button type="button" onClick={() => setViewing(p)}>{p.name}</button></h3>
+                    {p.description && <p className="os-card-desc">{p.description}</p>}
                     <div className="os-card-foot">
                       <span className="os-price-wrap">
                         <b className={`os-price ${isDiscounted(p) ? 'deal' : ''}`}>{ksh(unitPrice(p))}</b>
@@ -155,6 +177,7 @@ export default function ShopHome() {
           </div>
         )}
       </section>
+      <ProductSheet product={viewing} onClose={() => setViewing(null)} />
     </>
   );
 }

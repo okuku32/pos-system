@@ -21,20 +21,22 @@ const Setting = require('../models/Setting');
 const DEFAULT_API = { sandbox: 'https://etims-api-sbx.kra.go.ke/etims-api', live: 'https://etims-api.kra.go.ke/etims-api' };
 const DEFAULT_PORTAL = { sandbox: 'https://etims-sbx.kra.go.ke', live: 'https://etims.kra.go.ke' };
 
+// Each client's own KRA details come from their settings (tenancy/tenants.js)
 const cfg = () => {
-  const mode = ['mock', 'sandbox', 'live'].includes(process.env.ETIMS_MODE) ? process.env.ETIMS_MODE : 'off';
+  const e = require('../tenancy/tenants').settings().etims;
+  const mode = ['mock', 'sandbox', 'live'].includes(e.mode) ? e.mode : 'off';
   const net = mode === 'live' ? 'live' : 'sandbox';
   return {
     mode,
     enabled: mode !== 'off',
     apiUrl: (process.env.ETIMS_API_URL || DEFAULT_API[net]).replace(/\/$/, ''),
     portalUrl: (process.env.ETIMS_PORTAL_URL || DEFAULT_PORTAL[net]).replace(/\/$/, ''),
-    tin: (process.env.ETIMS_TIN || '').trim().toUpperCase(), // your KRA PIN, e.g. P051234567X
-    bhfId: (process.env.ETIMS_BHF_ID || '00').trim(), // branch ID ("00" = head office)
-    deviceSerial: (process.env.ETIMS_DEVICE_SERIAL || '').trim(),
-    traderName: process.env.ETIMS_TRADER_NAME || 'Ordersasa',
-    address: process.env.ETIMS_ADDRESS || 'Imara Mall, Mombasa Road, Nairobi',
-    defaultClassCode: process.env.ETIMS_DEFAULT_ITEM_CLASS || '5020230500', // item classification (KRA code list)
+    tin: (e.tin || '').trim().toUpperCase(), // the client's KRA PIN, e.g. P051234567X
+    bhfId: (e.bhfId || '00').trim(), // branch ID ("00" = head office)
+    deviceSerial: (e.deviceSerial || '').trim(),
+    traderName: e.traderName,
+    address: e.address,
+    defaultClassCode: e.defaultItemClass || '5020230500', // item classification (KRA code list)
   };
 };
 
@@ -251,20 +253,19 @@ function queueSale(saleId) {
 // Background retries for anything not yet accepted
 let timer = null;
 function startWorker() {
-  if (timer || !cfg().enabled) return;
-  timer = setInterval(async () => {
-    try {
+  if (timer) return;
+  timer = setInterval(() => {
+    require('../tenancy/tenants').forEachTenant(async () => {
+      if (!cfg().enabled) return;
       const due = await Sale.find({
         status: 'completed',
         'etims.status': { $in: ['pending', 'retrying'] },
         $or: [{ 'etims.nextAttemptAt': { $exists: false } }, { 'etims.nextAttemptAt': { $lte: new Date() } }],
       }).select('_id').limit(20);
       for (const s of due) await submitSale(s._id);
-    } catch (err) {
-      console.warn('[etims] retry worker:', err.message);
-    }
+    }).catch((err) => console.warn('[etims] retry worker:', err.message));
   }, 60 * 1000);
-  console.log(`[etims] enabled (${cfg().mode} mode)`);
+  console.log('[etims] retry worker running (per client)');
 }
 
 async function status() {

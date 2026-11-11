@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../tenancy/context');
 
 // A customer support conversation. Customers don't need an account: they get a secret token
 // (kept in their browser) that lets them continue the conversation.
@@ -40,4 +41,5 @@ supportThreadSchema.pre('save', function () {
   }
 });
 
-module.exports = mongoose.model('SupportThread', supportThreadSchema);
+// Lives in each client's own database (see tenancy/context.js)
+module.exports = tenantModel('SupportThread', supportThreadSchema);

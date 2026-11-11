@@ -5,6 +5,7 @@ import shopApi, { errMsg, firstName, prettyPhone, store } from './shopApi';
 import { useShop } from './ShopContext';
 import { connectSocket, chime } from '../realtime';
 import { STORE_INFO } from './storeInfo';
+import { openWhatsApp } from './WhatsAppSupport';
 
 // Floating customer support chat. Works without an account: the conversation is remembered in this
 // browser by a secret token. Open it from anywhere with window.dispatchEvent(new Event('ordersasa:chat')).
@@ -90,7 +91,7 @@ export default function SupportChat() {
       if (!openRef.current) {
         setUnread((u) => u + fresh.length);
         const last = fresh[fresh.length - 1];
-        toast(`${last.staffName || 'Ordersasa'}: ${last.text.slice(0, 80)}`, { icon: '💬', duration: 6000, id: 'support-reply' });
+        toast(`${last.staffName || STORE_INFO.name}: ${last.text.slice(0, 80)}`, { icon: '💬', duration: 6000, id: 'support-reply' });
       }
     });
     return () => socket.disconnect();
@@ -168,8 +169,8 @@ export default function SupportChat() {
           <div className="os-chat-agent">
             <span className="os-chat-avatar">🛍️<i /></span>
             <div>
-              <b>Ordersasa support</b>
-              <small>📍 {STORE_INFO.location} · we usually reply within minutes</small>
+              <b>{STORE_INFO.name} support</b>
+              <small>{STORE_INFO.location ? `📍 ${STORE_INFO.location} · ` : ''}we usually reply within minutes</small>
             </div>
           </div>
           <button className="os-icon-btn dark" onClick={() => setOpen(false)} aria-label="Close chat">✕</button>
@@ -178,8 +179,8 @@ export default function SupportChat() {
         {!thread ? (
           <form className="os-chat-body os-chat-start" onSubmit={start}>
             <div className="os-chat-bubble staff intro">
-              Hi{customer ? ` ${firstName(customer.name)}` : ''} 👋 Karibu Ordersasa! Ask us anything about an order, delivery, payment or a product.
-              You don’t need an account.
+              Hi{customer ? ` ${firstName(customer.name)}` : ''} 👋 Karibu {STORE_INFO.name}! Ask us anything about an order, delivery, payment or a product.
+              You don’t need an account. Prefer WhatsApp? <button type="button" className="os-linkbtn" onClick={() => { setOpen(false); openWhatsApp(); }}>Message us there</button>.
             </div>
             <div className="os-chat-topics" role="radiogroup" aria-label="What is it about?">
               {TOPICS.map(([k, label]) => (
@@ -215,7 +216,7 @@ export default function SupportChat() {
               {thread.messages.map((m) => (
                 <div key={m.id} className={`os-chat-row ${m.from}`}>
                   <div className={`os-chat-bubble ${m.from} ${m.pending ? 'pending' : ''}`}>
-                    {m.from === 'staff' && <b className="os-chat-name">{m.staffName || 'Ordersasa'}</b>}
+                    {m.from === 'staff' && <b className="os-chat-name">{m.staffName || STORE_INFO.name}</b>}
                     <span>{m.text}</span>
                     <small>{m.pending ? 'Sending…' : fmt(m.at)}</small>
                   </div>

@@ -6,6 +6,13 @@ const { formatPhone } = require('../utils/mpesa');
 const { httpError } = require('../utils/saleService');
 const { ownerOrder } = require('../utils/realtime');
 const { verifyGoogleCredential } = require('../utils/oauth');
+const crypto = require('crypto');
+const { sendMail } = require('../utils/mailer');
+const templates = require('../utils/emailTemplates');
+const { settings } = require('../tenancy/tenants');
+
+const RESET_MINUTES = 30;
+const hashToken = (t) => crypto.createHash('sha256').update(String(t)).digest('hex');
 
 const clean = (s, max) => String(s || '').replace(/[<>]/g, '').trim().slice(0, max);
 const EMAIL_RX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -82,6 +89,39 @@ exports.google = asyncHandler(async (req, res) => {
   }
   if (!c.active) return res.status(401).json({ message: 'This account is disabled' });
   res.status(created ? 201 : 200).json({ token: signCustomer(c._id), customer: publicCustomer(c), created });
+});
+
+// POST /api/customers/forgot-password { email }
+// Always gives the same answer, whether or not the email has an account (so it can't be used to find customers).
+exports.forgotPassword = asyncHandler(async (req, res) => {
+  const email = clean(req.body.email, 120).toLowerCase();
+  if (!EMAIL_RX.test(email)) throw httpError('Please enter a valid email address');
+  const generic = { message: 'If an account exists for that email, we’ve sent a link to reset the password. Check your inbox (and spam folder).' };
+
+  const c = await Customer.findOne({ email });
+  if (!c || !c.active) return res.json(generic);
+
+  const token = crypto.randomBytes(32).toString('hex');
+  await Customer.updateOne({ _id: c._id }, { $set: { resetTokenHash: hashToken(token), resetTokenExpires: new Date(Date.now() + RESET_MINUTES * 60000) } });
+  const link = `${settings().shopUrl}/shop/reset-password?token=${token}`;
+  sendMail({ to: c.email, ...templates.passwordReset(c, link, RESET_MINUTES) }); // in the background; never blocks or errors the request
+  res.json(generic);
+});
+
+// POST /api/customers/reset-password { token, password }: sets the new password and logs the customer in
+exports.resetPassword = asyncHandler(async (req, res) => {
+  const token = String(req.body.token || '');
+  const password = String(req.body.password || '');
+  if (!/^[a-f0-9]{64}$/.test(token)) throw httpError('This reset link is invalid. Please request a new one.');
+  if (password.length < 6) throw httpError('Password must be at least 6 characters');
+  const c = await Customer.findOne({ resetTokenHash: hashToken(token), resetTokenExpires: { $gt: new Date() } }).select('+resetTokenHash +resetTokenExpires');
+  if (!c || !c.active) throw httpError('This reset link has expired or was already used. Please request a new one.');
+  c.password = password; // hashed by the model before saving
+  c.resetTokenHash = undefined; // single use
+  c.resetTokenExpires = undefined;
+  c.passwordChangedAt = new Date(); // signs out other devices
+  await c.save();
+  res.json({ message: 'Your password has been changed', token: signCustomer(c._id), customer: publicCustomer(c) });
 });
 
 // PUT /api/customers/me { name, phone, address }

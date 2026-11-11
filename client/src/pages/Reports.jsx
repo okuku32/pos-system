@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
+import { Link } from 'react-router-dom';
 import api, { errMsg, money, downloadCSV, today, daysAgo } from '../api';
 
 const PRESETS = [
@@ -24,6 +25,8 @@ const SERIES = [
 ];
 
 const pct = (n) => `${Number(n || 0).toFixed(1)}%`;
+
+const sinceText = (days) => (days === null || days === undefined ? 'never sold' : days === 0 ? 'sold today' : days === 1 ? 'last sold yesterday' : `last sold ${days} days ago`);
 
 const STOCK_LABEL = { ok: 'In stock', low: 'Low, restock soon', out: 'Out of stock', deleted: 'Deleted' };
 function StockCell({ n, status }) {
@@ -153,6 +156,7 @@ export default function Reports() {
   if (!data) return <p className="muted">Loading…</p>;
   const t = data.totals;
 
+  const pt = data.purchaseTotals || {};
   const tables = {
     products: {
       label: 'By product',
@@ -181,6 +185,81 @@ export default function Reports() {
         { label: 'Status', value: (r) => STOCK_LABEL[r.status], render: (r) => <span className={`badge stock-${r.status}`}>{STOCK_LABEL[r.status]}</span> },
         { label: 'Value at cost', value: (r) => r.costValue, money: true },
         { label: 'Value at selling price', value: (r) => r.retailValue, money: true },
+      ],
+    },
+    best: {
+      label: 'Best sellers',
+      rows: data.bestSellers || [],
+      empty: 'Nothing sold in this period.',
+      cols: [
+        { label: '#', value: (r) => (data.bestSellers || []).indexOf(r) + 1, num: true },
+        { label: 'Product', value: (r) => r.name },
+        { label: 'Units sold', value: (r) => r.qty, num: true },
+        { label: 'Revenue', value: (r) => r.revenue, money: true },
+        { label: 'Profit', value: (r) => r.profit, money: true },
+        { label: 'In stock now', value: (r) => (r.stock ?? '–'), num: true },
+      ],
+    },
+    slow: {
+      label: 'Slow sellers',
+      rows: data.slowSellers || [],
+      empty: 'No products yet.',
+      cols: [
+        { label: 'Product', value: (r) => r.name },
+        { label: 'Category', value: (r) => r.category },
+        { label: 'Sold (period)', value: (r) => r.sold, num: true, render: (r) => (r.sold ? r.sold : <b className="error-text">0</b>) },
+        { label: 'Last sold', value: (r) => (r.lastSoldAt ? new Date(r.lastSoldAt).toLocaleDateString() : 'never'), render: (r) => <span className={r.daysSinceSale === null || r.daysSinceSale > 30 ? 'warn-text' : ''}>{r.lastSoldAt ? new Date(r.lastSoldAt).toLocaleDateString() : 'never'}</span> },
+        { label: 'In stock', value: (r) => r.stock, num: true },
+        { label: 'Money tied up (cost)', value: (r) => r.costValue, money: true },
+      ],
+    },
+    expenses: {
+      label: 'Expenses',
+      rows: data.expenses?.byCategory || [],
+      empty: 'No expenses recorded for this period. Add them on the Expenses page.',
+      cols: [
+        { label: 'Category', value: (r) => r.category },
+        { label: 'Entries', value: (r) => r.count, num: true },
+        { label: 'Amount', value: (r) => r.total, money: true },
+        { label: 'Share', value: (r) => r.share, pct: true },
+      ],
+    },
+    debts: {
+      label: `Debts${data.debts?.suppliers?.length ? ` (${data.debts.suppliers.length})` : ''}`,
+      rows: data.debts?.suppliers || [],
+      empty: 'You don’t owe any supplier anything right now 👍',
+      cols: [
+        { label: 'Owed to supplier', value: (r) => r.name },
+        { label: 'Unpaid purchases', value: (r) => r.purchases, num: true },
+        { label: 'Oldest unpaid since', value: (r) => new Date(r.oldest).toLocaleDateString() },
+        { label: 'Days outstanding', value: (r) => r.daysOutstanding, num: true, render: (r) => <b className={r.daysOutstanding > 30 ? 'error-text' : r.daysOutstanding > 14 ? 'warn-text' : ''}>{r.daysOutstanding}</b> },
+        { label: 'Amount owed', value: (r) => r.owed, money: true, render: (r) => <b className="error-text">{money(r.owed)}</b> },
+      ],
+    },
+    purchases: {
+      label: 'Purchases by supplier',
+      rows: data.purchaseSuppliers || [],
+      empty: 'No purchases, deliveries or supplier payments in this period.',
+      cols: [
+        { label: 'Supplier', value: (r) => r.name },
+        { label: 'Orders placed', value: (r) => r.orders, num: true },
+        { label: 'Ordered value', value: (r) => r.orderedValue, money: true },
+        { label: 'Stock received', value: (r) => r.receivedValue, money: true },
+        { label: 'Units received', value: (r) => r.units, num: true },
+        { label: 'Paid', value: (r) => r.paid, money: true },
+        { label: 'Owed now', value: (r) => r.owed, money: true, render: (r) => (r.owed > 0 ? <b className="error-text">{money(r.owed)}</b> : <span className="muted">–</span>) },
+      ],
+    },
+    received: {
+      label: 'Stock received',
+      rows: data.purchaseProducts || [],
+      empty: 'No stock was received in this period.',
+      cols: [
+        { label: 'Product', value: (r) => r.name },
+        { label: 'Supplier(s)', value: (r) => (r.suppliers || []).join(', ') },
+        { label: 'Qty received', value: (r) => r.qty, num: true },
+        { label: 'Avg unit cost', value: (r) => r.avgCost, money: true },
+        { label: 'Total cost', value: (r) => r.cost, money: true },
       ],
     },
     categories: {
@@ -256,6 +335,36 @@ export default function Reports() {
         <div className="card stat"><span className="muted">Cost of goods</span><b>{money(t.cost)}</b><small className="muted">{t.itemsSold} items sold</small></div>
         <div className="card stat"><span className="muted">Gross profit</span><b className={t.profit < 0 ? 'error-text' : ''}>{money(t.profit)}</b><small className="muted">Margin {pct(t.margin)}</small></div>
         <div className="card stat"><span className="muted">Discounts given</span><b>{money(t.discount)}</b><small className="muted">Tax collected {money(t.tax)}</small></div>
+        {data.expenses && (
+          <button className="card stat stat-link" onClick={() => setTab('expenses')} title="See expenses by category">
+            <span className="muted">Total expenses</span>
+            <b>{money(data.expenses.total)}</b>
+            <small className="muted">{data.expenses.byCategory.length ? `${data.expenses.byCategory[0].category} is the biggest` : 'none recorded'} · <Link to="/expenses">add</Link></small>
+          </button>
+        )}
+        {data.expenses && (
+          <div className={`card stat ${data.expenses.netProfit < 0 ? 'stat-bad' : 'stat-good'}`}>
+            <span className="muted">Net profit</span>
+            <b className={data.expenses.netProfit < 0 ? 'error-text' : 'success-text'}>{money(data.expenses.netProfit)}</b>
+            <small className="muted">gross profit {money(t.profit)} − expenses {money(data.expenses.total)}</small>
+          </div>
+        )}
+        {data.purchaseTotals && (
+          <button className="card stat stat-link" onClick={() => setTab('purchases')} title="See purchases by supplier">
+            <span className="muted">Purchases (stock received)</span>
+            <b>{money(pt.receivedValue)}</b>
+            <small className="muted">
+              Paid suppliers {money(pt.paid)} · {pt.owedNow > 0 ? <span className="error-text">owed {money(pt.owedNow)}</span> : 'nothing owed'}
+            </small>
+          </button>
+        )}
+        {data.purchaseTotals && (
+          <div className="card stat">
+            <span className="muted">Sales vs supplier payments</span>
+            <b className={pt.netCash < 0 ? 'error-text' : 'success-text'}>{pt.netCash < 0 ? '−' : '+'}{money(Math.abs(pt.netCash))}</b>
+            <small className="muted">{money(t.revenue)} in from sales − {money(pt.paid)} paid out</small>
+          </div>
+        )}
         {data.stockTotals && (
           <button className="card stat stat-link" onClick={() => setTab('stock')} title="See stock remaining per product">
             <span className="muted">Stock remaining</span>
@@ -269,6 +378,37 @@ export default function Reports() {
             </small>
           </button>
         )}
+      </div>
+
+      {/* Highlights: best sellers, slow sellers, outstanding debts */}
+      <div className="report-highlights">
+        <div className="card">
+          <div className="row-between"><h3 style={{ margin: 0 }}>🏆 Best sellers</h3><button className="btn ghost sm" onClick={() => setTab('best')}>See all</button></div>
+          <ol className="rank-list">
+            {(data.bestSellers || []).slice(0, 5).map((p) => (
+              <li key={p._id}><span>{p.name}</span><b>{p.qty} sold</b><small className="muted">{money(p.revenue)}</small></li>
+            ))}
+            {!(data.bestSellers || []).length && <p className="muted">Nothing sold in this period.</p>}
+          </ol>
+        </div>
+        <div className="card">
+          <div className="row-between"><h3 style={{ margin: 0 }}>🐢 Slow sellers</h3><button className="btn ghost sm" onClick={() => setTab('slow')}>See all</button></div>
+          <ol className="rank-list slow">
+            {(data.slowSellers || []).slice(0, 5).map((p) => (
+              <li key={p._id}><span>{p.name}</span><b className={p.sold ? '' : 'error-text'}>{p.sold} sold</b><small className="muted">{sinceText(p.daysSinceSale)} · {p.stock} in stock</small></li>
+            ))}
+          </ol>
+          <small className="muted">Consider a discount or a smaller re-order for these.</small>
+        </div>
+        <div className="card">
+          <div className="row-between"><h3 style={{ margin: 0 }}>💳 Outstanding debts</h3><button className="btn ghost sm" onClick={() => setTab('debts')}>See all</button></div>
+          <div className="debt-line"><span>You owe suppliers</span><b className={data.debts?.owedToSuppliers > 0 ? 'error-text' : 'success-text'}>{money(data.debts?.owedToSuppliers)}</b></div>
+          {(data.debts?.suppliers || []).slice(0, 3).map((d) => (
+            <div key={d._id} className="debt-line sub"><span>{d.name}</span><span>{money(d.owed)} <small className="muted">· {d.daysOutstanding}d</small></span></div>
+          ))}
+          <div className="debt-line" style={{ marginTop: 8 }}><span>Customers owe you <small className="muted">(unpaid open orders)</small></span><b className={data.debts?.customerOrders.total > 0 ? 'warn-text' : ''}>{money(data.debts?.customerOrders.total)}</b></div>
+          {data.debts?.customerOrders.count > 0 && <small className="muted">{data.debts.customerOrders.count} order(s) · <Link to="/orders">collect payment</Link></small>}
+        </div>
       </div>
 
       <div className="card">
@@ -320,7 +460,7 @@ export default function Reports() {
           </tbody>
         </table>
       </div>
-      <p className="muted"><small>Profit = sales after discount − cost price of items sold (cost is recorded at the time of each sale). Product and category revenue are before order-level discounts.</small></p>
+      <p className="muted"><small>Profit = sales after discount − cost price of items sold (cost is recorded at the time of each sale). Product and category revenue are before order-level discounts. Net profit = gross profit − expenses. Stock bought from suppliers isn’t an expense here: its cost is counted as cost of goods when items sell.</small></p>
     </div>
   );
 }

@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { STORE_INFO, directionsUrl, mapEmbedUrl } from './storeInfo';
 import { openSupportChat } from './SupportChat';
+import { openWhatsApp } from './WhatsAppSupport';
 
 const FAQ = [
   ['How do I track my order?', 'After you place an order you land on its tracking page, which updates live. You can also find every order under “My orders”, and we email you when it’s on the way.'],
   ['How do I pay?', 'Pay with M-Pesa or cash when your order is delivered or when you collect it. We email you a receipt as soon as the payment is received.'],
-  ['Can I collect my order myself?', `Yes. Choose “Pickup” at checkout and collect it from our shop at ${STORE_INFO.location}. We’ll email you when it’s ready.`],
+  ['Can I collect my order myself?', `Yes. Choose “Pickup” at checkout and collect it from our shop${STORE_INFO.location ? ` at ${STORE_INFO.location}` : ''}. We’ll email you when it’s ready.`],
   ['Something is wrong with my order', 'Sorry about that! Start a chat with us and include your order number. We’ll sort it out quickly.'],
   ['Do I need an account to contact you?', 'No. Anyone can chat with us. An account just lets us link the conversation to your orders.'],
 ];
@@ -14,7 +15,7 @@ const FAQ = [
 export default function HelpPage() {
   const [openFaq, setOpenFaq] = useState(0);
   useEffect(() => {
-    document.title = 'Help & contact · Ordersasa';
+    document.title = `Help & contact · ${STORE_INFO.name}`;
   }, []);
 
   return (
@@ -22,9 +23,10 @@ export default function HelpPage() {
       <section className="os-help-hero os-fade-up">
         <span className="os-eyebrow dark">Help &amp; contact</span>
         <h1>We’re here to help 👋</h1>
-        <p>Questions about an order, a delivery or a product? Chat with our team, no account needed, or come say hello at our shop in {STORE_INFO.location}.</p>
+        <p>Questions about an order, a delivery or a product? Chat with our team, no account needed, or come say hello at our shop{STORE_INFO.location ? ` in ${STORE_INFO.location}` : ''}.</p>
         <div className="os-row">
           <button className="os-btn os-btn-brand os-btn-lg" onClick={openSupportChat}>💬 Chat with us</button>
+          <button className="os-btn os-btn-wa os-btn-lg" onClick={() => openWhatsApp()}>WhatsApp us</button>
           <a className="os-btn os-btn-ghost os-btn-lg" href={directionsUrl} target="_blank" rel="noreferrer">📍 Get directions</a>
         </div>
       </section>
@@ -54,10 +56,12 @@ export default function HelpPage() {
           {STORE_INFO.email && (
             <div className="os-detail"><span>✉️</span><div><b>Email</b><small><a href={`mailto:${STORE_INFO.email}`}>{STORE_INFO.email}</a></small></div></div>
           )}
+          {mapEmbedUrl && (
           <div className="os-map">
             <iframe title={`Map of ${STORE_INFO.location}`} src={mapEmbedUrl} loading="lazy" referrerPolicy="no-referrer-when-downgrade" allowFullScreen />
           </div>
-          <a className="os-btn os-btn-dark os-block" href={directionsUrl} target="_blank" rel="noreferrer">Open in Google Maps</a>
+          )}
+          {directionsUrl && <a className="os-btn os-btn-dark os-block" href={directionsUrl} target="_blank" rel="noreferrer">Open in Google Maps</a>}
         </section>
 
         <section className="os-panel">

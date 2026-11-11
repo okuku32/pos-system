@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../tenancy/context');
 const bcrypt = require('bcryptjs');
 
 // Shop customers (separate from staff Users, so a customer login can never reach staff routes)
@@ -15,6 +16,11 @@ const customerSchema = new mongoose.Schema(
     avatar: { type: String, default: '' },
     address: { type: String, trim: true, maxlength: 200 }, // last delivery address, pre-filled at checkout
     active: { type: Boolean, default: true },
+    // Password reset: only a SHA-256 hash of the emailed token is stored, so a database leak can't be used to reset
+    resetTokenHash: { type: String, select: false },
+    resetTokenExpires: { type: Date, select: false },
+    // Logins issued before this moment are no longer accepted (set when the password is reset)
+    passwordChangedAt: Date,
   },
   { timestamps: true }
 );
@@ -29,4 +35,5 @@ customerSchema.methods.matchPassword = function (entered) {
   return bcrypt.compare(entered, this.password);
 };
 
-module.exports = mongoose.model('Customer', customerSchema);
+// Lives in each client's own database (see tenancy/context.js)
+module.exports = tenantModel('Customer', customerSchema);

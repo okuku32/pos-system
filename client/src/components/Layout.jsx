@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import BrandName from './BrandName';
 import { RealtimeProvider, useRealtime } from '../context/RealtimeContext';
 
 function TopBar() {
@@ -15,6 +16,10 @@ function TopBar() {
           { to: '/dashboard', label: 'Dashboard' },
           { to: '/reports', label: 'Reports' },
           { to: '/products', label: 'Products' },
+          { to: '/suppliers', label: 'Suppliers' },
+          { to: '/purchases', label: 'Purchases' },
+          { to: '/expenses', label: 'Expenses' },
+          { to: '/marketplace', label: 'Marketplace' },
           { to: '/users', label: 'Users' },
           { to: '/settings', label: 'Settings' },
         ]
@@ -23,7 +28,7 @@ function TopBar() {
 
   return (
     <header className="topbar no-print">
-      <div className="brand">Order<span style={{ color: '#ff7a45' }}>sasa</span> <small style={{ fontWeight: 500, opacity: 0.6, fontSize: 13 }}>POS</small></div>
+      <div className="brand"><BrandName /> <small style={{ fontWeight: 500, opacity: 0.6, fontSize: 13 }}>POS</small></div>
       <nav>
         {links.map((l) => (
           <NavLink key={l.to} to={l.to} end={l.end}>
@@ -33,6 +38,7 @@ function TopBar() {
         ))}
       </nav>
       <div className="userbox">
+        <a className="btn ghost sm" href="/market" target="_blank" rel="noreferrer" title="Open the public marketplace">Market ↗</a>
         <a className="btn ghost sm" href="/shop" target="_blank" rel="noreferrer" title="Open the customer shop page">
           Shop ↗
         </a>

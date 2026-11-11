@@ -1,28 +1,38 @@
-// Safaricom Daraja API helper: OAuth token, STK Push (Lipa Na M-Pesa Online) and STK Query
+// Safaricom Daraja API helper: OAuth token, STK Push (Lipa Na M-Pesa Online) and STK Query.
+// Each client (tenant) uses their own Daraja keys, shortcode and passkey from their settings.
 const axios = require('axios');
+const { settings } = require('../tenancy/tenants');
 
-const baseURL = () =>
-  process.env.MPESA_ENV === 'production' ? 'https://api.safaricom.co.ke' : 'https://sandbox.safaricom.co.ke';
+const baseURL = (cfg) =>
+  ['production', 'live'].includes(cfg.env) ? 'https://api.safaricom.co.ke' : 'https://sandbox.safaricom.co.ke';
 
-let cachedToken = null;
-let tokenExpiry = 0;
+const mpesaConfig = () => settings().mpesa;
 
-async function getAccessToken() {
-  if (cachedToken && Date.now() < tokenExpiry) return cachedToken;
-  const auth = Buffer.from(`${process.env.MPESA_CONSUMER_KEY}:${process.env.MPESA_CONSUMER_SECRET}`).toString('base64');
-  let data;
-  try {
-    ({ data } = await axios.get(`${baseURL()}/oauth/v1/generate?grant_type=client_credentials`, {
-      headers: { Authorization: `Basic ${auth}` },
-    }));
-  } catch (err) {
-    const e = new Error('Could not authenticate with Daraja - check MPESA_CONSUMER_KEY / MPESA_CONSUMER_SECRET and MPESA_ENV');
+// Access tokens are cached per set of credentials (i.e. per client)
+const tokens = new Map();
+
+async function getAccessToken(cfg = mpesaConfig()) {
+  if (!cfg.consumerKey || !cfg.consumerSecret) {
+    const e = new Error('M-Pesa is not set up for this shop yet (Settings → M-Pesa)');
     e.response = { data: { errorMessage: e.message } };
     throw e;
   }
-  cachedToken = data.access_token;
-  tokenExpiry = Date.now() + (Number(data.expires_in || 3599) - 60) * 1000;
-  return cachedToken;
+  const key = `${cfg.env}:${cfg.consumerKey}`;
+  const hit = tokens.get(key);
+  if (hit && Date.now() < hit.expiry) return hit.token;
+  const auth = Buffer.from(`${cfg.consumerKey}:${cfg.consumerSecret}`).toString('base64');
+  let data;
+  try {
+    ({ data } = await axios.get(`${baseURL(cfg)}/oauth/v1/generate?grant_type=client_credentials`, {
+      headers: { Authorization: `Basic ${auth}` },
+    }));
+  } catch {
+    const e = new Error('Could not authenticate with Daraja - check the M-Pesa consumer key / secret and environment');
+    e.response = { data: { errorMessage: e.message } };
+    throw e;
+  }
+  tokens.set(key, { token: data.access_token, expiry: Date.now() + (Number(data.expires_in || 3599) - 60) * 1000 });
+  return data.access_token;
 }
 
 function timestamp() {
@@ -31,9 +41,7 @@ function timestamp() {
   return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
 }
 
-function password(ts) {
-  return Buffer.from(`${process.env.MPESA_SHORTCODE}${process.env.MPESA_PASSKEY}${ts}`).toString('base64');
-}
+const password = (cfg, ts) => Buffer.from(`${cfg.shortcode}${cfg.passkey}${ts}`).toString('base64');
 
 // Normalise 07xx / 01xx / +2547xx / 2547xx -> 2547xxxxxxxx
 function formatPhone(phone) {
@@ -45,39 +53,41 @@ function formatPhone(phone) {
 }
 
 async function stkPush({ phone, amount, accountReference, description }) {
-  const token = await getAccessToken();
+  const cfg = mpesaConfig();
+  if (!cfg.callbackUrl || /your-public-url/.test(cfg.callbackUrl)) {
+    const e = new Error('M-Pesa callback address is not set (PUBLIC_API_URL in server/.env)');
+    e.response = { data: { errorMessage: e.message } };
+    throw e;
+  }
+  const token = await getAccessToken(cfg);
   const ts = timestamp();
   const msisdn = formatPhone(phone);
   const body = {
-    BusinessShortCode: process.env.MPESA_SHORTCODE,
-    Password: password(ts),
+    BusinessShortCode: cfg.shortcode,
+    Password: password(cfg, ts),
     Timestamp: ts,
-    TransactionType: process.env.MPESA_TRANSACTION_TYPE || 'CustomerPayBillOnline',
+    TransactionType: cfg.transactionType || 'CustomerPayBillOnline',
     Amount: Math.ceil(amount), // M-Pesa only accepts whole shillings
     PartyA: msisdn,
-    PartyB: process.env.MPESA_SHORTCODE,
+    PartyB: cfg.shortcode,
     PhoneNumber: msisdn,
-    CallBackURL: process.env.MPESA_CALLBACK_URL,
+    CallBackURL: cfg.callbackUrl,
     AccountReference: String(accountReference).slice(0, 12),
     TransactionDesc: String(description || 'POS Payment').slice(0, 13),
   };
-  const { data } = await axios.post(`${baseURL()}/mpesa/stkpush/v1/processrequest`, body, {
+  const { data } = await axios.post(`${baseURL(cfg)}/mpesa/stkpush/v1/processrequest`, body, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return { ...data, phone: msisdn };
 }
 
 async function stkQuery(checkoutRequestId) {
-  const token = await getAccessToken();
+  const cfg = mpesaConfig();
+  const token = await getAccessToken(cfg);
   const ts = timestamp();
   const { data } = await axios.post(
-    `${baseURL()}/mpesa/stkpushquery/v1/query`,
-    {
-      BusinessShortCode: process.env.MPESA_SHORTCODE,
-      Password: password(ts),
-      Timestamp: ts,
-      CheckoutRequestID: checkoutRequestId,
-    },
+    `${baseURL(cfg)}/mpesa/stkpushquery/v1/query`,
+    { BusinessShortCode: cfg.shortcode, Password: password(cfg, ts), Timestamp: ts, CheckoutRequestID: checkoutRequestId },
     { headers: { Authorization: `Bearer ${token}` } }
   );
   return data;

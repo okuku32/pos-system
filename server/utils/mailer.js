@@ -15,7 +15,8 @@ function getTransporter() {
         host: process.env.SMTP_HOST,
         port,
         secure: process.env.SMTP_SECURE ? process.env.SMTP_SECURE === 'true' : port === 465,
-        auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } : undefined,
+        // App passwords are shown with spaces ("abcd efgh ijkl mnop"); the real password has none
+        auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: String(process.env.SMTP_PASS || '').replace(/\s+/g, '') } : undefined,
       });
     }
     if (process.env.NODE_ENV === 'production') {
@@ -37,14 +38,52 @@ function getTransporter() {
   return transporterPromise;
 }
 
+// A client can use their own SMTP account (Settings → Email); otherwise the platform's account is used.
+const clientTransports = new Map();
+function clientTransport(e) {
+  if (!e?.smtpHost) return null;
+  const key = `${e.smtpHost}:${e.smtpPort}:${e.smtpUser}`;
+  if (!clientTransports.has(key)) {
+    const port = Number(e.smtpPort || 587);
+    clientTransports.set(key, nodemailer.createTransport({ host: e.smtpHost, port, secure: port === 465, auth: e.smtpUser ? { user: e.smtpUser, pass: e.smtpPass } : undefined }));
+  }
+  return clientTransports.get(key);
+}
+
+function senderFor() {
+  try {
+    const { settings, DEFAULT_SLUG } = require('../tenancy/tenants');
+    const s = settings();
+    // the original shop keeps using MAIL_FROM exactly as configured in .env
+    if (s.slug === DEFAULT_SLUG() && process.env.MAIL_FROM && !s.email.smtpHost) return { from: process.env.MAIL_FROM, transport: null };
+    return { from: s.email.from, transport: clientTransport(s.email) };
+  } catch {
+    return { from: process.env.MAIL_FROM || 'Ordersasa <no-reply@ordersasa.co.ke>', transport: null }; // no client context
+  }
+}
+
+// Mail providers like Gmail only send "from" the account you log in with. When the configured sender is a
+// different address, send from the login address but keep the shop's name, and let replies go to the
+// configured address: customers see "Ordersasa <you@gmail.com>".
+const emailOf = (s = '') => (String(s).match(/<([^>]+)>/)?.[1] || String(s)).trim().toLowerCase();
+const nameOf = (s = '') => (String(s).match(/^\s*"?([^"<]+?)"?\s*</)?.[1] || '').trim();
+function fromHeaders(sender) {
+  const login = sender.transport ? '' : String(process.env.SMTP_USER || '').trim();
+  if (!login.includes('@') || emailOf(sender.from) === login.toLowerCase()) return { from: sender.from };
+  const name = nameOf(sender.from) || 'Ordersasa';
+  const replyTo = emailOf(sender.from);
+  return { from: `"${name.replace(/"/g, '')}" <${login}>`, ...(replyTo.includes('@') && !/no-?reply/.test(replyTo) ? { replyTo } : {}) };
+}
+
 // Never throws: an email problem must never break an order or a payment.
 async function sendMail({ to, subject, html, text }) {
   if (!to) return { sent: false, reason: 'no recipient' };
   try {
-    const transporter = await getTransporter();
+    const sender = senderFor();
+    const transporter = sender.transport || (await getTransporter());
     if (!transporter) return { sent: false, reason: `email ${mode}` };
     const info = await transporter.sendMail({
-      from: process.env.MAIL_FROM || 'Ordersasa <no-reply@ordersasa.co.ke>',
+      ...fromHeaders(sender),
       to,
       subject,
       html,

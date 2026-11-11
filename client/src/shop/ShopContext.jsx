@@ -15,6 +15,8 @@ export function ShopProvider({ children }) {
   const [bump, setBump] = useState(0); // animates the cart button when something is added
   const [orders, setOrders] = useState([]); // the customer's orders, kept live
   const listeners = useRef(new Set());
+  const chatListeners = useRef(new Set()); // marketplace chat pages listening for live messages
+  const [chatUnread, setChatUnread] = useState(0);
 
   // ----- session
   useEffect(() => {
@@ -38,6 +40,13 @@ export function ShopProvider({ children }) {
   };
   const login = async (loginId, password) => startSession((await shopApi.post('/customers/login', { login: loginId, password })).data);
   const signup = async (data) => startSession((await shopApi.post('/customers/register', data)).data);
+  // Forgot password: request the emailed link, then set the new password from it (logs the customer in)
+  const requestPasswordReset = async (email) => (await shopApi.post('/customers/forgot-password', { email })).data;
+  const resetPassword = async (token, password) => {
+    const { data } = await shopApi.post('/customers/reset-password', { token, password });
+    startSession(data);
+    return data;
+  };
   const loginWithGoogle = async (credential) => {
     const { data } = await shopApi.post('/customers/oauth/google', { credential });
     startSession(data);
@@ -47,6 +56,7 @@ export function ShopProvider({ children }) {
     localStorage.removeItem(SHOP_TOKEN);
     setCustomer(null);
     setOrders([]);
+    setChatUnread(0);
     toast('You’ve been logged out. See you soon!', { icon: '👋' });
   };
 
@@ -59,6 +69,19 @@ export function ShopProvider({ children }) {
     });
   }, []);
 
+  // ----- marketplace chat: unread badge + live messages
+  const refreshChatUnread = useCallback(() => {
+    if (!localStorage.getItem(SHOP_TOKEN)) return Promise.resolve(0);
+    return shopApi.get('/market/conversations/unread').then((r) => {
+      setChatUnread(r.data.unread);
+      return r.data.unread;
+    }).catch(() => 0);
+  }, []);
+  const onChat = useCallback((fn) => {
+    chatListeners.current.add(fn);
+    return () => chatListeners.current.delete(fn);
+  }, []);
+
   const onOrderStatus = useCallback((fn) => {
     listeners.current.add(fn);
     return () => listeners.current.delete(fn);
@@ -68,7 +91,40 @@ export function ShopProvider({ children }) {
     if (!customer) return undefined;
     refreshOrders().catch(() => {});
     const socket = connectSocket({ customerToken: localStorage.getItem(SHOP_TOKEN) });
-    socket.on('connect', () => refreshOrders().catch(() => {}));
+    socket.on('connect', () => {
+      refreshOrders().catch(() => {});
+      refreshChatUnread();
+    });
+    socket.on('market:read', () => refreshChatUnread());
+    socket.on('market:message', (data) => {
+      chatListeners.current.forEach((fn) => fn(data));
+      const fromMe = String(data.message.from) === String(customer._id);
+      if (fromMe) return;
+      refreshChatUnread();
+      // a heads-up unless they're already looking at that conversation
+      if (!window.location.pathname.endsWith(`/market/messages/${data.conversation._id}`)) {
+        chime();
+        toast(
+          (t) => (
+            <span
+              role="button"
+              tabIndex={0}
+              style={{ cursor: 'pointer' }}
+              onClick={() => {
+                toast.dismiss(t.id);
+                window.history.pushState({}, '', `/market/messages/${data.conversation._id}`);
+                window.dispatchEvent(new PopStateEvent('popstate'));
+              }}
+            >
+              <b>{data.conversation.other.name}</b>: {data.message.text.slice(0, 80)}
+              <br />
+              <small style={{ opacity: 0.7 }}>{data.conversation.listing.title} · tap to reply</small>
+            </span>
+          ),
+          { icon: '💬', duration: 7000, id: `chat-${data.conversation._id}` }
+        );
+      }
+    });
     socket.on('order:status', (o) => {
       let changed = false;
       setOrders((list) => {
@@ -87,7 +143,7 @@ export function ShopProvider({ children }) {
       }, 0);
     });
     return () => socket.disconnect();
-  }, [customer, refreshOrders]);
+  }, [customer, refreshOrders, refreshChatUnread]);
 
   // ----- cart
   useEffect(() => {
@@ -109,9 +165,10 @@ export function ShopProvider({ children }) {
   const activeOrder = useMemo(() => orders.find((o) => o.status === 'open'), [orders]);
 
   const value = {
-    ready, customer, login, signup, loginWithGoogle, logout, setCustomer,
+    ready, customer, login, signup, loginWithGoogle, requestPasswordReset, resetPassword, logout, setCustomer,
     cart, setQty, clearCart, cartOpen, setCartOpen, bump,
     orders, activeOrder, refreshOrders, onOrderStatus,
+    chatUnread, refreshChatUnread, onChat,
   };
   return <ShopContext.Provider value={value}>{children}</ShopContext.Provider>;
 }

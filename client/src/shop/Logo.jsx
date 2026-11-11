@@ -1,7 +1,10 @@
-// Ordersasa mark: a shopping bag with speed lines ("sasa" = now)
+import { STORE_INFO, isOrdersasa } from './storeInfo';
+
+// Shop mark: the client's logo if they set one, otherwise a shopping bag with speed lines ("sasa" = now)
 export default function Logo({ size = 34, light = false }) {
   return (
     <span className="os-logo">
+      {STORE_INFO.logoUrl ? <img src={STORE_INFO.logoUrl} alt="" width={size} height={size} style={{ borderRadius: 10, objectFit: 'cover' }} /> : (
       <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden="true">
         <rect width="40" height="40" rx="11" fill="var(--os-brand)" />
         <path d="M13 15h16l-1.4 15.2a2 2 0 0 1-2 1.8H16.4a2 2 0 0 1-2-1.8Z" fill="#fff" />
@@ -9,8 +12,9 @@ export default function Logo({ size = 34, light = false }) {
         <path d="M5 21h5M6.5 25.5h4" stroke="#fff" strokeOpacity=".75" strokeWidth="2.2" strokeLinecap="round" />
         <circle cx="21" cy="22.5" r="2.2" fill="var(--os-brand)" />
       </svg>
+      )}
       <span className={`os-wordmark ${light ? 'light' : ''}`}>
-        Order<b>sasa</b>
+        {isOrdersasa() ? <>Order<b>sasa</b></> : STORE_INFO.name}
       </span>
     </span>
   );

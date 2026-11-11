@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api, { errMsg, money } from '../api';
 import Modal from '../components/Modal';
 import ProductImage, { imageUrl } from '../components/ProductImage';
 
-const EMPTY = { name: '', sku: '', barcode: '', category: 'General', price: '', cost: '', stock: '', lowStockThreshold: 5, active: true, discountPercent: 0, taxType: 'B', etimsClassCode: '' };
+const EMPTY = { name: '', description: '', sku: '', barcode: '', category: 'General', price: '', cost: '', stock: '', lowStockThreshold: 5, active: true, discountPercent: 0, taxType: 'B', etimsClassCode: '' };
 const TAX_TYPES = [['B', 'B · VAT 16% (standard)'], ['E', 'E · VAT 8%'], ['C', 'C · Zero-rated'], ['A', 'A · Exempt'], ['D', 'D · Non-VAT']];
 
 export default function Products() {
   const [products, setProducts] = useState([]);
   const [q, setQ] = useState('');
+  const [supplier, setSupplier] = useState(''); // filter: '' all, 'none' unassigned, or a supplier id
+  const [suppliers, setSuppliers] = useState([]);
   const [editing, setEditing] = useState(null);
   const [file, setFile] = useState(null); // new image picked in the form
   const [preview, setPreview] = useState('');
@@ -36,13 +39,32 @@ export default function Products() {
   };
 
   const load = () =>
-    api.get('/products', { params: { all: true, q } }).then((r) => setProducts(r.data)).catch((e) => toast.error(errMsg(e)));
+    api.get('/products', { params: { all: true, q, supplier: supplier || undefined } }).then((r) => setProducts(r.data)).catch((e) => toast.error(errMsg(e)));
+
+  // Change a product's supplier straight from the list
+  const changeSupplier = async (p, supplierId) => {
+    const chosen = suppliers.find((x) => x._id === supplierId) || null;
+    const before = p.supplier;
+    setProducts((list) => list.map((x) => (x._id === p._id ? { ...x, supplier: chosen } : x))); // show it at once
+    try {
+      await api.put(`/products/${p._id}`, { supplier: supplierId || null });
+      toast.success(chosen ? `${p.name} → ${chosen.name}` : `${p.name}: supplier removed`, { id: `sup-${p._id}` });
+      if (supplier) load(); // filtered by supplier: refresh so the list stays accurate
+    } catch (err) {
+      setProducts((list) => list.map((x) => (x._id === p._id ? { ...x, supplier: before } : x))); // undo on failure
+      toast.error(errMsg(err));
+    }
+  };
 
   useEffect(() => {
     const t = setTimeout(load, 250);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q]);
+  }, [q, supplier]);
+
+  useEffect(() => {
+    api.get('/suppliers/options').then((r) => setSuppliers(r.data)).catch(() => {});
+  }, []);
 
   const save = async (e) => {
     e.preventDefault();
@@ -55,6 +77,7 @@ export default function Products() {
       discountPercent: Math.min(90, Math.max(0, Number(editing.discountPercent || 0))),
     };
     delete body.salePrice;
+    body.supplier = editing.supplier || null;
     delete body.etimsItemCode;
     delete body.etimsRegistered;
     delete body.image;
@@ -101,6 +124,11 @@ export default function Products() {
         <h2>Products</h2>
         <div className="toolbar">
           <input placeholder="Search…" value={q} onChange={(e) => setQ(e.target.value)} />
+          <select value={supplier} onChange={(e) => setSupplier(e.target.value)} title="Filter by supplier" style={{ width: 'auto' }}>
+            <option value="">All suppliers</option>
+            <option value="none">No supplier</option>
+            {suppliers.map((x) => <option key={x._id} value={x._id}>{x.name}</option>)}
+          </select>
           <button className="btn" onClick={() => openForm({ ...EMPTY })}>+ Add product</button>
         </div>
       </div>
@@ -108,7 +136,7 @@ export default function Products() {
         <table className="table">
           <thead>
             <tr>
-              <th></th><th>Name</th><th>SKU</th><th>Category</th><th className="right">Price</th>
+              <th></th><th>Name</th><th>SKU</th><th>Category</th><th>Supplier</th><th className="right">Price</th>
               <th className="right">Cost</th><th className="right">Discount</th><th className="right">Stock</th><th>Status</th><th></th>
             </tr>
           </thead>
@@ -119,18 +147,30 @@ export default function Products() {
                 <td>{p.name}</td>
                 <td className="muted">{p.sku || '-'}</td>
                 <td>{p.category}</td>
+                <td>
+                  {/* Set or change the supplier right here; saved as soon as you pick */}
+                  <select
+                    className={`supplier-cell ${p.supplier ? '' : 'none'}`}
+                    value={p.supplier?._id || ''}
+                    onChange={(e) => changeSupplier(p, e.target.value)}
+                    aria-label={`Supplier of ${p.name}`}
+                  >
+                    <option value="">No supplier</option>
+                    {suppliers.map((x) => <option key={x._id} value={x._id}>{x.name}</option>)}
+                  </select>
+                </td>
                 <td className="right">{money(p.price)}</td>
                 <td className="right muted">{money(p.cost)}</td>
                 <td className="right">{p.discountPercent > 0 ? <span className="deal-text">−{p.discountPercent}% → {money(p.salePrice)}</span> : <span className="muted">–</span>}</td>
                 <td className={`right ${p.stock <= p.lowStockThreshold ? 'error-text' : ''}`}>{p.stock}</td>
                 <td><span className={`badge ${p.active ? 'completed' : 'cancelled'}`}>{p.active ? 'active' : 'hidden'}</span></td>
                 <td className="right nowrap">
-                  <button className="btn ghost sm" onClick={() => openForm({ ...p, sku: p.sku || '', barcode: p.barcode || '' })}>Edit</button>
+                  <button className="btn ghost sm" onClick={() => openForm({ ...p, sku: p.sku || '', barcode: p.barcode || '', supplier: p.supplier?._id || '' })}>Edit</button>
                   <button className="btn ghost sm danger-text" onClick={() => remove(p)}>Delete</button>
                 </td>
               </tr>
             ))}
-            {!products.length && <tr><td colSpan={10} className="center muted">No products yet.</td></tr>}
+            {!products.length && <tr><td colSpan={11} className="center muted">No products yet.</td></tr>}
           </tbody>
         </table>
       </div>
@@ -158,9 +198,22 @@ export default function Products() {
               </div>
             </div>
             <label className="span2">Name<input value={editing.name} onChange={set('name')} required /></label>
+            <label className="span2">
+              Description <small className="muted">(shown to customers in the online shop)</small>
+              <textarea rows={3} maxLength={1000} value={editing.description || ''} onChange={set('description')} placeholder="What is it, size, what it's good for…" style={{ font: 'inherit', padding: 8, border: '1px solid var(--border)', borderRadius: 8, resize: 'vertical' }} />
+              <small className="muted" style={{ textAlign: 'right' }}>{(editing.description || '').length}/1000</small>
+            </label>
             <label>SKU<input value={editing.sku} onChange={set('sku')} /></label>
             <label>Barcode<input value={editing.barcode} onChange={set('barcode')} /></label>
-            <label className="span2">Category<input value={editing.category} onChange={set('category')} list="cats" /></label>
+            <label>Category<input value={editing.category} onChange={set('category')} list="cats" /></label>
+            <label>
+              Supplier
+              <select value={editing.supplier || ''} onChange={set('supplier')}>
+                <option value="">No supplier</option>
+                {suppliers.map((x) => <option key={x._id} value={x._id}>{x.name}</option>)}
+              </select>
+              {!suppliers.length && <small className="muted"><Link to="/suppliers">Add suppliers</Link> to link them here</small>}
+            </label>
             <label>Selling price<input type="number" step="0.01" min="0" value={editing.price} onChange={set('price')} required /></label>
             <label>Cost price<input type="number" step="0.01" min="0" value={editing.cost} onChange={set('cost')} /></label>
             <label className="span2">

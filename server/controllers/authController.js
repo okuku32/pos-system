@@ -3,7 +3,9 @@ const User = require('../models/User');
 const asyncHandler = require('../utils/asyncHandler');
 const { verifyGoogleCredential, googleClientId } = require('../utils/oauth');
 
-const sign = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+const { requireTenant } = require('../tenancy/context');
+// The token records the client it was issued for (see tenancy/tokens.js)
+const sign = (id) => jwt.sign({ id, tid: requireTenant().slug }, process.env.JWT_SECRET, { expiresIn: '7d' });
 const publicUser = (u) => ({ _id: u._id, name: u.name, email: u.email, role: u.role, active: u.active });
 
 exports.login = asyncHandler(async (req, res) => {

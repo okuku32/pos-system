@@ -3,9 +3,17 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 const User = require('../models/User');
 const Product = require('../models/Product');
+const { runAsTenant } = require('../tenancy/context');
+const { bootstrapDefaultTenant, findTenant, DEFAULT_SLUG } = require('../tenancy/tenants');
 
 (async () => {
   await mongoose.connect(process.env.MONGO_URI);
+  // Seeds one client: SEED_TENANT=<web address> npm run seed (default: the original shop)
+  await bootstrapDefaultTenant();
+  const tenant = await findTenant(process.env.SEED_TENANT || DEFAULT_SLUG());
+  if (!tenant) throw new Error('No client called ' + (process.env.SEED_TENANT || DEFAULT_SLUG()));
+  console.log('Seeding client:', tenant.slug, '(' + tenant.dbName + ')');
+  await runAsTenant(tenant, async () => {
   if (!(await User.findOne({ email: 'admin@pos.com' })))
     await User.create({ name: 'Admin', email: 'admin@pos.com', password: 'admin123', role: 'admin' });
   if (!(await User.findOne({ email: 'cashier@pos.com' })))
@@ -26,6 +34,7 @@ const Product = require('../models/Product');
     { name: 'Tissue Paper 4pk', sku: 'HOU002', category: 'Household', price: 240, cost: 190, stock: 3 },
     { name: 'Biscuits', sku: 'SNK001', category: 'Snacks', price: 50, cost: 35, stock: 100 },
   ]);
+  });
   console.log('Seeded. Login: admin@pos.com / admin123  or  cashier@pos.com / cashier123');
   await mongoose.disconnect();
 })().catch((e) => {

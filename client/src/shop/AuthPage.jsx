@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { useShop } from './ShopContext';
 import { errMsg, firstName } from './shopApi';
 import Logo from './Logo';
+import { STORE_INFO } from './storeInfo';
 import GoogleButton, { googleEnabled } from '../components/GoogleButton';
 import './shop.css';
 
@@ -17,18 +18,20 @@ export default function AuthPage({ mode }) {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const next = params.get('next');
+  // where to go after logging in: the checkout, or back to the page they came from (e.g. an ad they want to chat about)
+  const dest = next === 'checkout' ? '/shop?checkout=1' : next && next.startsWith('/') && !next.startsWith('//') ? next : '/shop';
   const isSignup = mode === 'signup';
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', login: '' });
   const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    document.title = isSignup ? 'Create your Ordersasa account' : 'Log in · Ordersasa';
+    document.title = isSignup ? `Create your ${STORE_INFO.name} account` : `Log in · ${STORE_INFO.name}`;
   }, [isSignup]);
 
-  const done = () => navigate(next === 'checkout' ? '/shop?checkout=1' : '/shop', { replace: true });
+  const done = () => navigate(dest, { replace: true });
 
-  if (ready && customer && !busy) return <Navigate to={next === 'checkout' ? '/shop?checkout=1' : '/shop'} replace />;
+  if (ready && customer && !busy) return <Navigate to={dest} replace />;
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
 
@@ -77,7 +80,7 @@ export default function AuthPage({ mode }) {
             <li><span>💳</span> Pay with M-Pesa or cash</li>
           </ul>
         </div>
-        <small>© {new Date().getFullYear()} Ordersasa</small>
+        <small>© {new Date().getFullYear()} {STORE_INFO.name}</small>
       </aside>
 
       <main className="os-auth-main">
@@ -85,8 +88,8 @@ export default function AuthPage({ mode }) {
           <Link to="/shop" className="os-auth-mobile-logo"><Logo /></Link>
           <h1>{isSignup ? 'Create your account' : 'Log in'}</h1>
           <p className="os-muted">
-            {isSignup ? 'Already have an account? ' : 'New to Ordersasa? '}
-            <Link to={`${isSignup ? '/shop/login' : '/shop/signup'}${next ? `?next=${next}` : ''}`}>{isSignup ? 'Log in' : 'Create a free account'}</Link>
+            {isSignup ? 'Already have an account? ' : `New to ${STORE_INFO.name}? `}
+            <Link to={`${isSignup ? '/shop/login' : '/shop/signup'}${next ? `?next=${encodeURIComponent(next)}` : ''}`}>{isSignup ? 'Log in' : 'Create a free account'}</Link>
           </p>
           {next === 'checkout' && <div className="os-note">🛒 Your cart is saved. {isSignup ? 'Sign up' : 'Log in'} to place your order.</div>}
 
@@ -114,6 +117,14 @@ export default function AuthPage({ mode }) {
               <button type="button" onClick={() => setShow(!show)} aria-label={show ? 'Hide password' : 'Show password'}>{show ? 'Hide' : 'Show'}</button>
             </div>
           </label>
+          {!isSignup && (
+            <Link
+              to={`/shop/forgot-password${form.login.includes('@') ? `?email=${encodeURIComponent(form.login.trim())}` : ''}`}
+              className="os-forgot"
+            >
+              Forgot your password?
+            </Link>
+          )}
           {isSignup && form.password && (
             <div className={`os-strength s${strength}`} aria-live="polite">
               <i /><i /><i />

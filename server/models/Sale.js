@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../tenancy/context');
 
 const itemSchema = new mongoose.Schema(
   {
@@ -50,6 +51,10 @@ const saleSchema = new mongoose.Schema(
 );
 
 saleSchema.index({ status: 1, createdAt: -1 });
+// Fast lookups: sales history by date, a cashier's own sales, eTIMS retry queue
+saleSchema.index({ createdAt: -1 });
+saleSchema.index({ cashier: 1, createdAt: -1 });
+saleSchema.index({ 'etims.status': 1, 'etims.nextAttemptAt': 1 }, { sparse: true });
 
 saleSchema.pre('save', function () {
   if (!this.receiptNo) {
@@ -59,4 +64,5 @@ saleSchema.pre('save', function () {
   }
 });
 
-module.exports = mongoose.model('Sale', saleSchema);
+// Lives in each client's own database (see tenancy/context.js)
+module.exports = tenantModel('Sale', saleSchema);

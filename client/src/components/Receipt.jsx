@@ -4,7 +4,7 @@ import Modal from './Modal';
 import api from '../api';
 import { money } from '../api';
 
-const STORE = import.meta.env.VITE_STORE_NAME || 'Ordersasa';
+import { STORE_INFO } from '../shop/storeInfo';
 
 function EtimsBlock({ sale }) {
   const [etims, setEtims] = useState(sale.etims);
@@ -23,7 +23,8 @@ function EtimsBlock({ sale }) {
   }, [sale._id, etims?.status]);
 
   useEffect(() => {
-    if (etims?.verifyUrl) QRCode.toDataURL(etims.verifyUrl, { margin: 1, width: 140 }).then(setQr).catch(() => {});
+    // The QR library only downloads when a receipt actually needs a QR code
+    if (etims?.verifyUrl) import('qrcode').then((m) => m.default.toDataURL(etims.verifyUrl, { margin: 1, width: 140 })).then(setQr).catch(() => {});
   }, [etims?.verifyUrl]);
 
   if (!etims) return null;
@@ -54,7 +55,8 @@ export default function Receipt({ sale, onClose }) {
   return (
     <Modal title="Receipt" onClose={onClose} width={380}>
       <div className="receipt print-area">
-        <h2>{STORE}</h2>
+        <h2>{STORE_INFO.name}</h2>
+        {STORE_INFO.address && <p className="muted" style={{ fontSize: 12 }}>{STORE_INFO.address}</p>}
         <p className="muted">{new Date(sale.createdAt).toLocaleString()}</p>
         <p>
           <b>{sale.receiptNo}</b>
