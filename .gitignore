@@ -5,6 +5,7 @@ node_modules/
 .env
 .env.*
 !.env.example
+!.env.*.example
 
 # Build output
 dist/
@@ -26,3 +27,34 @@ desktop.ini
 !.vscode/extensions.json
 .idea/
 ~$*
+
+# More secrets: keys, certificates, app signing and cloud credentials (scripts/check-secrets.js blocks them too)
+*.pem
+*.key
+*.p12
+*.pfx
+*.p8
+*.jks
+*.keystore
+*.mobileprovision
+keystore.properties
+key.properties
+**/google-services.json
+**/GoogleService-Info.plist
+*service-account*.json
+*serviceAccount*.json
+*firebase-adminsdk*.json
+credentials*.json
+id_rsa*
+id_ed25519*
+.npmrc
+secrets/
+
+# Database files and dumps (customer data)
+*.sqlite
+*.sqlite3
+*.db
+*.bson
+*.archive
+dump/
+backup*/
