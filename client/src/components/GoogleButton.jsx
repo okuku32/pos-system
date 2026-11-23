@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { isNative } from '../platform';
 import axios from 'axios';
 
 // "Continue with Google" using Google Identity Services. Renders nothing until the server has a
@@ -9,7 +10,7 @@ let scriptPromise = null;
 const getConfig = () => {
   configPromise =
     configPromise ||
-    axios.get(`${import.meta.env.VITE_API_URL || '/api'}/auth/oauth-config`).then((r) => r.data).catch(() => ({ google: null }));
+    axios.get(`${import.meta.env.VITE_API_URL || '/api'}/customers/oauth-config`).then((response) => response.data).catch(() => ({ google: null })); // public: Google's client id isn't secret
   return configPromise;
 };
 
@@ -18,15 +19,15 @@ const loadScript = () => {
     scriptPromise ||
     new Promise((resolve, reject) => {
       if (window.google?.accounts?.id) return resolve();
-      const s = document.createElement('script');
-      s.src = 'https://accounts.google.com/gsi/client';
-      s.async = true;
-      s.onload = () => resolve();
-      s.onerror = () => {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => {
         scriptPromise = null;
         reject(new Error('Could not load Google sign-in'));
       };
-      document.head.appendChild(s);
+      document.head.appendChild(script);
     });
   return scriptPromise;
 };
@@ -39,6 +40,12 @@ export default function GoogleButton({ onCredential, text = 'continue_with', wid
 
   useEffect(() => {
     let alive = true;
+    // Google blocks its sign-in inside app WebViews: the Android app uses email / phone + password
+    if (isNative) {
+      setState('off');
+      onUnavailable?.();
+      return undefined;
+    }
     getConfig()
       .then(({ google: clientId }) => {
         if (!clientId) {
@@ -76,4 +83,4 @@ export default function GoogleButton({ onCredential, text = 'continue_with', wid
 }
 
 // Lets a page know whether to show an "or" divider
-export const googleEnabled = () => getConfig().then((c) => !!c.google);
+export const googleEnabled = () => getConfig().then((result) => !!result.google);

@@ -6,13 +6,32 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "seed": "node utils/seed.js",
-    "seed:market": "node utils/seedMarket.js"
+    "seed:market": "node utils/seedMarket.js",
+    "seed:agents": "node utils/seedAgents.js",
+    "photos": "node utils/unsplashPhotos.js",
+    "photos:free": "node utils/freePhotos.js",
+    "test:security": "node --test --test-concurrency=1 tests/security.test.js",
+    "test:auth": "node --test --test-concurrency=1 tests/auth.test.js",
+    "test:unit": "node --test tests/unit.test.js",
+    "test": "node --test --test-concurrency=1 tests/unit.test.js tests/sellerRank.test.js tests/security.test.js tests/auth.test.js tests/push.test.js tests/splitpay.test.js tests/sellers.test.js tests/shopride.test.js tests/shopride-mpesa.test.js tests/stores.test.js tests/maps.test.js tests/fieldteam-docs.test.js tests/firstscreen-road.test.js tests/ride.test.js tests/roles.test.js",
+    "test:push": "node --test --test-concurrency=1 tests/push.test.js",
+    "test:splitpay": "node --test --test-concurrency=1 tests/splitpay.test.js",
+    "test:sellers": "node --test --test-concurrency=1 tests/sellers.test.js",
+    "test:shopride": "node --test --test-concurrency=1 tests/shopride.test.js",
+    "test:shopride-mpesa": "node --test --test-concurrency=1 tests/shopride-mpesa.test.js",
+    "test:stores": "node --test --test-concurrency=1 tests/stores.test.js tests/maps.test.js",
+    "test:maps": "node --test --test-concurrency=1 tests/maps.test.js",
+    "test:docs": "node --test --test-concurrency=1 tests/fieldteam-docs.test.js",
+    "remove-old-pos": "node utils/removeOldPos.js",
+    "staff-link": "node utils/staffLink.js",
+    "test:roles": "node --test --test-concurrency=1 tests/roles.test.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.8.0",
     "axios": "^1.21.1",
     "bcryptjs": "^3.0.3",
     "compression": "^1.8.2",
@@ -26,10 +45,15 @@
     "morgan": "^1.12.1",
     "multer": "^2.5.0",
     "nodemailer": "^10.5.0",
-    "socket.io": "^4.8.4"
+    "socket.io": "^4.8.4",
+    "helmet": "^8.3.0",
+    "ioredis": "^5.11.1",
+    "@socket.io/redis-adapter": "^8.3.0",
+    "rate-limit-redis": "^6.0.2"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "ioredis-mock": "^8.13.1"
   },
   "type": "commonjs"
 }

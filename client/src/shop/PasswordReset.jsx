@@ -5,6 +5,7 @@ import { useShop } from './ShopContext';
 import { errMsg, firstName } from './shopApi';
 import { STORE_INFO } from './storeInfo';
 import Logo from './Logo';
+import PasswordRules, { passwordOk } from './PasswordRules';
 import './shop.css';
 
 // mode 'forgot': ask for the email and send the reset link
@@ -25,8 +26,8 @@ export default function PasswordReset({ mode }) {
     document.title = `${mode === 'forgot' ? 'Forgot password' : 'Choose a new password'} · ${STORE_INFO.name}`;
   }, [mode]);
 
-  const sendLink = async (e) => {
-    e.preventDefault();
+  const sendLink = async (link) => {
+    link.preventDefault();
     setBusy(true);
     try {
       const data = await requestPasswordReset(email.trim());
@@ -38,27 +39,26 @@ export default function PasswordReset({ mode }) {
     }
   };
 
-  const save = async (e) => {
-    e.preventDefault();
+  const save = async (event) => {
+    event.preventDefault();
     if (password !== confirm) return toast.error('The two passwords don’t match');
     setBusy(true);
     try {
       const data = await resetPassword(token, password);
       toast.success(`Password changed. Welcome back, ${firstName(data.customer.name)}! 👋`);
-      navigate('/shop', { replace: true });
+      navigate('/', { replace: true });
     } catch (err) {
       toast.error(errMsg(err));
       setBusy(false);
     }
   };
 
-  const strength = password.length >= 10 ? 3 : password.length >= 8 ? 2 : password.length >= 6 ? 1 : 0;
 
   return (
     <div className="os os-auth">
       <main className="os-auth-main">
         <div className="os-auth-card os-fade-up">
-          <Link to="/shop" className="os-reset-logo"><Logo /></Link>
+          <Link to="/" className="os-reset-logo"><Logo /></Link>
 
           {mode === 'forgot' ? (
             sent ? (
@@ -68,7 +68,7 @@ export default function PasswordReset({ mode }) {
                 <p className="os-muted">{sent}</p>
                 <p className="os-muted" style={{ fontSize: 14 }}>The link works once and expires in 30 minutes.</p>
                 <button type="button" className="os-btn os-btn-ghost os-block" onClick={() => setSent('')}>Use a different email</button>
-                <Link to="/shop/login" className="os-back">← Back to log in</Link>
+                <Link to="/login" className="os-back">← Back to log in</Link>
               </div>
             ) : (
               <form onSubmit={sendLink} className="os-reset-form">
@@ -76,12 +76,12 @@ export default function PasswordReset({ mode }) {
                 <p className="os-muted">Enter the email you signed up with and we’ll send you a link to choose a new password.</p>
                 <label className="os-field">
                   <span>Email</span>
-                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus autoComplete="email" placeholder="you@example.com" />
+                  <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required autoFocus autoComplete="email" placeholder="you@example.com" />
                 </label>
                 <button className="os-btn os-btn-brand os-btn-lg os-block" disabled={busy}>
                   {busy ? <span className="os-spinner" /> : 'Send reset link'}
                 </button>
-                <Link to="/shop/login" className="os-back">← Back to log in</Link>
+                <Link to="/login" className="os-back">← Back to log in</Link>
               </form>
             )
           ) : !/^[a-f0-9]{64}$/.test(token) ? (
@@ -89,7 +89,7 @@ export default function PasswordReset({ mode }) {
               <div className="os-empty-art">🔗</div>
               <h1>This link isn’t complete</h1>
               <p className="os-muted">Open the link from the email again, or request a new one.</p>
-              <Link to="/shop/forgot-password" className="os-btn os-btn-brand os-block">Request a new link</Link>
+              <Link to="/forgot-password" className="os-btn os-btn-brand os-block">Request a new link</Link>
             </div>
           ) : (
             <form onSubmit={save} className="os-reset-form">
@@ -98,25 +98,20 @@ export default function PasswordReset({ mode }) {
               <label className="os-field">
                 <span>New password</span>
                 <div className="os-pass">
-                  <input type={show ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} autoFocus autoComplete="new-password" placeholder="At least 6 characters" />
+                  <input type={show ? 'text' : 'password'} value={password} onChange={(event) => setPassword(event.target.value)} required minLength={10} autoFocus autoComplete="new-password" placeholder="10+ characters: A–Z, a–z and 0–9" />
                   <button type="button" onClick={() => setShow(!show)} aria-label={show ? 'Hide password' : 'Show password'}>{show ? 'Hide' : 'Show'}</button>
                 </div>
               </label>
-              {password && (
-                <div className={`os-strength s${strength}`} aria-live="polite">
-                  <i /><i /><i />
-                  <span>{['Too short', 'Okay', 'Good', 'Strong'][strength]}</span>
-                </div>
-              )}
+              {password && <PasswordRules password={password} />}
               <label className="os-field">
                 <span>Type it again</span>
-                <input type={show ? 'text' : 'password'} value={confirm} onChange={(e) => setConfirm(e.target.value)} required minLength={6} autoComplete="new-password" />
+                <input type={show ? 'text' : 'password'} value={confirm} onChange={(event) => setConfirm(event.target.value)} required minLength={6} autoComplete="new-password" />
               </label>
               {confirm && confirm !== password && <small className="os-mismatch">The passwords don’t match yet</small>}
-              <button className="os-btn os-btn-brand os-btn-lg os-block" disabled={busy || password !== confirm}>
+              <button className="os-btn os-btn-brand os-btn-lg os-block" disabled={busy || password !== confirm || !passwordOk(password)}>
                 {busy ? <span className="os-spinner" /> : 'Save new password'}
               </button>
-              <Link to="/shop/forgot-password" className="os-back">Link expired? Request a new one</Link>
+              <Link to="/forgot-password" className="os-back">Link expired? Request a new one</Link>
             </form>
           )}
         </div>

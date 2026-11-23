@@ -8,7 +8,7 @@ import { firstName } from './shopApi';
 // shown and tested before the shop has a business WhatsApp number.
 //
 // Open it from anywhere with openWhatsApp('optional pre-filled message').
-export const openWhatsApp = (message) => window.dispatchEvent(new CustomEvent('ordersasa:whatsapp', { detail: { message } }));
+export const openWhatsApp = (message) => window.dispatchEvent(new CustomEvent('kapu:whatsapp', { detail: { message } }));
 
 const realLink = (text) => `https://wa.me/${STORE_INFO.whatsapp}?text=${encodeURIComponent(text)}`;
 const time = () => new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
@@ -33,8 +33,8 @@ export default function WhatsAppSupport() {
     `Hello ${STORE_INFO.name}${customer ? `, this is ${firstName(customer.name)}` : ''}. ${activeOrder ? `I'd like help with my order ${activeOrder.orderNo}.` : 'I need some help, please.'}`;
 
   useEffect(() => {
-    const onOpen = (e) => {
-      const text = e.detail?.message || defaultMessage();
+    const onOpen = (error) => {
+      const text = error.detail?.message || defaultMessage();
       if (!isMock) {
         window.open(realLink(text), '_blank', 'noopener');
         return;
@@ -42,21 +42,21 @@ export default function WhatsAppSupport() {
       setDraft(text);
       setOpen(true);
     };
-    window.addEventListener('ordersasa:whatsapp', onOpen);
-    return () => window.removeEventListener('ordersasa:whatsapp', onOpen);
+    window.addEventListener('kapu:whatsapp', onOpen);
+    return () => window.removeEventListener('kapu:whatsapp', onOpen);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMock, customer, activeOrder]);
 
-  const send = (e) => {
-    e?.preventDefault();
+  const send = (event) => {
+    event?.preventDefault();
     const text = draft.trim();
     if (!text) return;
-    setThread((t) => [...t, { from: 'me', text, at: time() }]);
+    setThread((previousThread) => [...previousThread, { from: 'me', text, at: time() }]);
     setDraft('');
     // simulated reply, so the mock feels like a real conversation
     setTimeout(() => {
-      setThread((t) => [
-        ...t,
+      setThread((previousThread) => [
+        ...previousThread,
         {
           from: 'shop',
           at: time(),
@@ -73,7 +73,7 @@ export default function WhatsAppSupport() {
       </button>
 
       {open && (
-        <div className="os-wa-wrap" onMouseDown={(e) => e.target === e.currentTarget && setOpen(false)}>
+        <div className="os-wa-wrap" onMouseDown={(event) => event.target === event.currentTarget && setOpen(false)}>
           <section className="os-wa" role="dialog" aria-label="WhatsApp chat (demo)">
             <header className="os-wa-head">
               <button className="os-wa-back" onClick={() => setOpen(false)} aria-label="Close">←</button>
@@ -90,15 +90,15 @@ export default function WhatsAppSupport() {
                 Karibu {STORE_INFO.name}! 👋 How can we help you today?
                 <small>{time()}</small>
               </div>
-              {thread.map((m, i) => (
-                <div key={i} className={`os-wa-msg ${m.from}`}>
-                  {m.text}
-                  <small>{m.at}{m.from === 'me' && <span className="os-wa-ticks"> ✓✓</span>}</small>
+              {thread.map((item, index) => (
+                <div key={index} className={`os-wa-msg ${item.from}`}>
+                  {item.text}
+                  <small>{item.at}{item.from === 'me' && <span className="os-wa-ticks"> ✓✓</span>}</small>
                 </div>
               ))}
             </div>
             <form className="os-wa-compose" onSubmit={send}>
-              <input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Message" aria-label="Message" autoFocus />
+              <input value={draft} onChange={(event) => setDraft(event.target.value)} placeholder="Message" aria-label="Message" autoFocus />
               <button className="os-wa-send" disabled={!draft.trim()} aria-label="Send">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M2 21 23 12 2 3v7l15 2-15 2z" /></svg>
               </button>

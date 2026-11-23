@@ -3,16 +3,120 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ordersasa</title>
-    <meta name="description" content="Ordersasa: your everyday shopping, delivered sasa hivi." />
+    <title>Kapu: Sell fast. Buy smart. Pay safe. Buy and sell anything in Kenya</title>
+    <meta name="description" content="Buy and sell cars, land, phones, furniture, clothes, baby items and more in Kenya. Chat with sellers or buy online with M-Pesa or cash on delivery." />
     <meta name="theme-color" content="#ff5a1f" />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='11' fill='%23ff5a1f'/%3E%3Cpath d='M13 15h16l-1.4 15.2a2 2 0 0 1-2 1.8H16.4a2 2 0 0 1-2-1.8Z' fill='%23fff'/%3E%3Cpath d='M16.5 15v-1.5a4.5 4.5 0 0 1 9 0V15' fill='none' stroke='%23fff' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <!-- installable app (Android, iPhone, Windows, Mac) -->
+    <link rel="manifest" href="/manifest.webmanifest" crossorigin="use-credentials" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Kapu" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="application-name" content="Kapu" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='11' fill='%23ff5a1f'/%3E%3Cpath d='M13.5 17a6.5 6.5 0 0 1 13 0' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round'/%3E%3Cpath d='M8.5 17h23l-2.7 13.3a2.4 2.4 0 0 1-2.35 1.95H13.55a2.4 2.4 0 0 1-2.35-1.95Z' fill='%23fff'/%3E%3Cpath d='M10.4 22.2h19.2M11.3 26.6h17.4' stroke='%23ff5a1f' stroke-opacity='.55' stroke-width='2'/%3E%3C/svg%3E" />
+    <!-- our font, from our own server (no waiting on Google's): the main file is fetched with the page -->
+    <link rel="preload" href="/fonts/plus-jakarta-sans-latin-v12.woff2" as="font" type="font/woff2" crossorigin />
+    <script>
+      // Runs before anything else downloads, and picks which loading screen the CSS below shows (classes on <html>):
+      //   "js"      JavaScript works: show the loading screen and hide the search-engine copy of the page
+      //   "admin"   the staff panel's dark bar instead of the shop's
+      //   "welcome" a visitor on the front page: the welcome page's first screen, ready-made, instead of a spinner
+      // (old-style `var` and `function`: this runs as-is in every browser, before the app's modern code is checked)
+      (function (rootElement, pagePath) {
+        rootElement.classList.add('js');
+        var isStaffPage = pagePath === '/admin' || pagePath.indexOf('/admin/') === 0 || pagePath.indexOf('/staff/') === 0;
+        if (isStaffPage) rootElement.classList.add('admin');
+        // members and visitors who chose "Explore the marketplace" see the marketplace on "/", not the welcome page
+        // (the same rule as seesWelcome() in src/App.jsx)
+        var seesWelcome = pagePath === '/';
+        try {
+          seesWelcome = seesWelcome && localStorage.getItem('kapu_signed_in') !== '1' && localStorage.getItem('kapu_browse_market') !== '1';
+        } catch (storageError) { /* storage blocked (private mode, strict settings): treat them as a visitor */ }
+        if (seesWelcome) rootElement.classList.add('welcome');
+      })(document.documentElement, location.pathname);
+    </script>
+    <style>
+      /* Plus Jakarta Sans (SIL Open Font License, see /fonts/OFL.txt): one variable file for weights 400–800; text shows at once in
+         the system font and switches when the font arrives (swap) */
+      @font-face { font-family: 'Plus Jakarta Sans'; font-style: normal; font-weight: 400 800; font-display: swap; src: url(/fonts/plus-jakarta-sans-latin-v12.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+      @font-face { font-family: 'Plus Jakarta Sans'; font-style: normal; font-weight: 400 800; font-display: swap; src: url(/fonts/plus-jakarta-sans-latin-ext-v12.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+      /* until our font arrives: Arial (Windows, Mac, iPhone) or Roboto (Android) resized to the same width and line height,
+         so the text doesn't grow or move when the font swaps in */
+      @font-face { font-family: 'Kapu Fallback'; src: local('Arial'), local('ArialMT'); size-adjust: 104.7%; ascent-override: 99.3%; descent-override: 21%; line-gap-override: 0%; }
+      @font-face { font-family: 'Kapu Fallback R'; src: local('Roboto'), local('Roboto-Regular'); size-adjust: 117.4%; ascent-override: 88.6%; descent-override: 18.7%; line-gap-override: 0%; }
+      /* shown for the split second before the app starts; the search-engine copy stays for crawlers without JavaScript */
+      html, body { margin: 0; background: #faf8f5; }
+      .boot { display: none; }
+      html.js .boot { display: block; }
+      html.js .seo-snap { display: none; }
+      .boot-bar { height: 64px; display: flex; align-items: center; gap: 10px; padding: 0 max(16px, calc((100vw - 1200px) / 2)); background: rgba(255, 255, 255, 0.92); border-bottom: 1px solid #ece8e2; }
+      .boot-logo { width: 34px; height: 34px; border-radius: 10px; background: #ff5a1f; }
+      .boot-name { font: 800 22px/1 'Plus Jakarta Sans', 'Kapu Fallback', 'Kapu Fallback R', system-ui, -apple-system, 'Segoe UI', sans-serif; color: #14171f; letter-spacing: -0.02em; }
+      .boot-name .k1 { color: #111; } .boot-name .k2, .boot-name .k4 { color: #bb0000; } .boot-name .k3 { color: #006600; }
+      .boot-spin { width: 34px; height: 34px; margin: 18vh auto 0; border: 3px solid #ffd9c7; border-top-color: #ff5a1f; border-radius: 50%; animation: boot-spin 0.8s linear infinite; }
+      @keyframes boot-spin { to { transform: rotate(360deg); } }
+      /* admin panel: the same dark bar as the real one, so nothing jumps when it appears */
+      html.admin, html.admin body { background: #f4f6f8; }
+      html.admin .boot-bar { height: 56px; padding: 0 20px; background: #111827; border: 0; }
+      html.admin .boot-logo { display: none; }
+      html.admin .boot-name { font: 800 19px/1 system-ui, -apple-system, 'Segoe UI', sans-serif; color: #fff; }
+      html.admin .boot-name .k1 { color: #fff; } html.admin .boot-name .k2, html.admin .boot-name .k4 { color: #ff4d4d; } html.admin .boot-name .k3 { color: #2fbf5f; }
+      html.admin .boot-name::after { content: 'Admin'; margin-left: 8px; font-size: 13px; font-weight: 500; opacity: 0.6; }
+      html.admin .boot-spin { margin-top: 20vh; border-color: #e2e8f0; border-top-color: #2563eb; }
+      /* the welcome page's first screen, the same size and look as the real one (so nothing jumps when the app replaces it) */
+      .bw { display: none; }
+      html.welcome .bw { display: block; }
+      html.welcome .boot-spin { display: none; }
+      html.welcome .boot-bar { height: 109px; box-sizing: border-box; align-items: flex-start; padding-top: 14px; }
+      .bw { font-family: 'Plus Jakarta Sans', 'Kapu Fallback', 'Kapu Fallback R', system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 17.5px; line-height: 1.6; padding-top: 18px; }
+      .bw-bar { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px 12px; padding: 10px 16px; background: #14171f; color: #fff; font-size: 14px; text-align: center; }
+      .bw-bar b { color: #ffb48a; }
+      .bw-bar a { color: #fff; font-weight: 800; white-space: nowrap; }
+      .bw-dot { display: inline-block; vertical-align: 1px; margin-right: 8px; width: 9px; height: 9px; border-radius: 50%; background: #34d399; }
+      .bw-hero { color: #fff; background: radial-gradient(circle at 85% 20%, rgba(255, 90, 31, 0.45), transparent 45%), radial-gradient(circle at 10% 90%, rgba(255, 154, 77, 0.25), transparent 40%), linear-gradient(160deg, #14171f 0%, #1f2430 60%, #2a1a12 100%); padding: 48px 0 84px; }
+      .bw-wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
+      .bw-eyebrow { display: inline-block; padding: 6px 14px; border-radius: 999px; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.18); font-weight: 700; font-size: 15px; letter-spacing: 0.02em; }
+      .bw h1 { font-size: clamp(34px, 5.4vw, 60px); line-height: 1.05; letter-spacing: -0.02em; margin: 18px 0 16px; max-width: 760px; font-weight: 700; letter-spacing: -0.015em; }
+      .bw h1 em { font-style: normal; color: #ff8a3d; }
+      .bw-lead { font-size: clamp(16px, 1.8vw, 19px); line-height: 1.65; color: #d7dbe3; max-width: 680px; margin: 0 0 10px; }
+      .bw-kenyan { display: inline-flex; align-items: center; gap: 10px; margin: 0 0 12px; padding: 8px 14px; border-radius: 14px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.22); font-weight: 700; font-size: 16px; line-height: 1.65; letter-spacing: 0.01em; }
+      .bw-tagline { font-weight: 800; color: #ffb48a; margin: 0 0 26px; line-height: 1.65; letter-spacing: 0.01em; }
+      .bw-ctas { display: flex; flex-wrap: wrap; gap: 12px; }
+      .bw-ctas a { display: inline-flex; flex: 1 1 100%; align-items: center; justify-content: center; box-sizing: border-box; padding: 15px 26px; border-radius: 999px; border: 1px solid transparent; font-weight: 700; font-size: 18.5px; text-decoration: none; }
+      .bw-ctas .bw-brand { background: #ff5a1f; color: #fff; }
+      .bw-ctas .bw-light { background: #fff; color: #14171f; }
+      .bw-ctas .bw-ghost { background: transparent; color: #fff; border: 1.5px solid rgba(255, 255, 255, 0.45); }
+      @media (min-width: 641px) {
+        .bw-wrap { padding: 0 20px; }
+        .bw-hero { padding: 72px 0 96px; }
+        .bw-bar { font-size: 15px; }
+        .bw-ctas a { flex: 0 0 auto; }
+      }
+      @media (min-width: 761px) { html.welcome .boot-bar { height: 128px; } .bw { padding-top: 28px; } }
+      /* an item page on a phone: its top (photo, title, price) sent ready-made by the server (server/market/firstScreen.js),
+         laid out like the real page (search bar, breadcrumbs, full-width photo) so nothing moves when the app takes over */
+      .boot-item { display: none; }
+      @media (max-width: 640px) {
+        html.js .boot-item { display: block; }
+        .boot:has(.boot-item) .boot-spin { display: none; }
+        .boot:has(.boot-item) .boot-bar { height: 109px; box-sizing: border-box; align-items: flex-start; padding-top: 14px; }
+      }
+      .boot-item { padding: 18px 14px 0; font: 17.5px/1.6 'Plus Jakarta Sans', 'Kapu Fallback', 'Kapu Fallback R', system-ui, -apple-system, 'Segoe UI', sans-serif; color: #14171f; }
+      .bi-search { box-sizing: border-box; height: 57px; display: flex; align-items: center; padding: 0 18px; border: 1px solid #ece8e2; border-radius: 999px; background: #fff; color: #9ca3af; font-size: 16px; }
+      .bi-crumbs { margin: 16px 0 12px; font-size: 16px; line-height: 25.6px; color: #6b7280; }
+      /* half a pixel wider each side than the real gallery: when the app's photo replaces this one, the browser's
+         "largest paint" timing must not see it as bigger (a rounding difference of a few pixels would count as a new paint) */
+      .bi-gallery { margin: 0 -12.5px; aspect-ratio: 4 / 3.2; overflow: hidden; background: #f0ece6; }
+      .bi-photo { display: block; width: 100%; height: 100%; object-fit: contain; background: #1b1d22; }
+      .bi-nophoto { display: grid; place-items: center; }
+      .bi-nophoto span { font-size: 110px; line-height: 1.6; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.1)); }
+      .bi-title { margin: 14px 0 0; font-size: 23px; line-height: 1.2; font-weight: 700; letter-spacing: -0.015em; }
+      .bi-price { margin: 6px 0 0; font-weight: 800; color: #e2440c; }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><div class="boot" aria-label="Loading"><div class="boot-bar"><span class="boot-logo"></span><span class="boot-name"><span class="k1">K</span><span class="k2">a</span><span class="k3">p</span><span class="k4">u</span></span></div><div class="boot-spin"></div><div class="bw"><div class="bw-bar"><span><span class="bw-dot"></span><b>Launching soon.</b> Join now: be among the first buyers and sellers on Kapu.</span><a href="/signup">Join free →</a></div><section class="bw-hero"><div class="bw-wrap"><span class="bw-eyebrow">Welcome to Kapu · launching soon</span><h1>Kenya’s marketplace you can <em>trust</em>.</h1><p class="bw-lead">We connect buyers and sellers across Kenya, and we stand between them so every deal is protected: safe mobile payment is guaranteed, with trained riders and agents who check your goods before you pay.</p><p class="bw-kenyan"><svg viewBox="0 0 30 20" width="30" height="20" aria-hidden="true"><rect width="30" height="20" rx="2" fill="#fff"/><rect width="30" height="5.6" fill="#111"/><rect y="7" width="30" height="6" fill="#bb0000"/><rect y="14.4" width="30" height="5.6" fill="#006600"/><ellipse cx="15" cy="10" rx="3.2" ry="6.4" fill="#bb0000" stroke="#111" stroke-width="0.8"/><ellipse cx="15" cy="10" rx="1" ry="4.4" fill="#fff"/></svg>By Kenyans, for Kenyans, with Kenyans.</p><p class="bw-tagline">Sell fast. Buy smart. Pay safe.</p><div class="bw-ctas"><a class="bw-brand" href="/signup">Join free before launch</a><a class="bw-light" href="/signup?as=seller">I sell: open my shop early</a><a class="bw-ghost" href="/market/search">Explore the marketplace</a></div></div></section></div></div></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

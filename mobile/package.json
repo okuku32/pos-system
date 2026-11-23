@@ -1,0 +1,20 @@
+{
+  "name": "kapu-mobile",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Kapu for Android and iOS (Capacitor): opens the live Kapu site in a native app",
+  "scripts": {
+    "sync": "npx cap sync",
+    "android": "npx cap open android",
+    "ios": "npx cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.6.10",
+    "@capacitor/cli": "^7.6.10",
+    "@capacitor/core": "^7.6.10",
+    "@capacitor/ios": "^7.6.10"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5"
+  }
+}

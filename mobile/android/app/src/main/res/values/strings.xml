@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Kapu</string>
+    <string name="title_activity_main">Kapu</string>
+    <string name="package_name">com.ordersasa.app</string>
+    <string name="custom_url_scheme">com.ordersasa.app</string>
+</resources>

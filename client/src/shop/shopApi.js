@@ -1,70 +1,114 @@
 import axios from 'axios';
+import { flag, takeLegacy, withCsrf } from '../session';
+import { isNative, tokenReady, saveAppToken } from '../platform';
 
-// Separate API client for the customer shop: its own token, and no redirect to the staff login
-export const SHOP_TOKEN = 'ordersasa_token';
-export { STORE_INFO } from './storeInfo'; // the current client's name and location
+// API client for buyers and sellers. The login is an httpOnly session cookie (separate from the admin one);
+// localStorage only remembers "signed in" so visitors don't make a pointless /me request.
+export const SHOP_TOKEN = 'kapu_token'; // older versions kept the token here: upgraded once, then removed
+const SIGNED_IN = 'kapu_signed_in';
+export const signedIn = () => flag.get(SIGNED_IN);
+export const setSignedIn = (on) => flag.set(SIGNED_IN, on);
+export { STORE_INFO } from './storeInfo';
 
-const shopApi = axios.create({ baseURL: import.meta.env.VITE_API_URL || '/api' });
+const BASE = import.meta.env.VITE_API_URL || '/api';
+const shopApi = axios.create({ baseURL: BASE, withCredentials: true, timeout: 25000 });
 
-shopApi.interceptors.request.use((config) => {
-  try {
-    const t = localStorage.getItem(SHOP_TOKEN);
-    if (t) config.headers.Authorization = `Bearer ${t}`;
-  } catch {
-    /* storage unavailable */
+// ---------------------------------------------------------------- weak or lost connections
+// Reading (GET) is retried by itself: up to 2 more tries, 0.8 s then 2.4 s apart, when the connection dropped, timed out or
+// the server was briefly unavailable (502 / 503 / 504). Changes (POST, PUT…) are never retried automatically, so an
+// order or a payment can't happen twice. The page hears about it ("kapu:network") to show the offline banner.
+const RETRY_STATUS = [502, 503, 504];
+const tell = (online) => window.dispatchEvent(new CustomEvent('kapu:network', { detail: { online } }));
+export const isNetworkError = (error) => !error.response && (error.code === 'ERR_NETWORK' || error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT' || /network|timeout/i.test(error.message || ''));
+shopApi.interceptors.response.use(
+  (res) => {
+    tell(true);
+    return res;
+  },
+  async (error) => {
+    const config = error.config;
+    const retryable = config && (config.method || 'get').toLowerCase() === 'get' && (isNetworkError(error) || RETRY_STATUS.includes(error.response?.status));
+    if (isNetworkError(error)) tell(false);
+    if (!retryable || (config.__tries || 0) >= 2 || (typeof navigator !== 'undefined' && navigator.onLine === false && (config.__tries || 0) >= 1)) return Promise.reject(error);
+    config.__tries = (config.__tries || 0) + 1;
+    await new Promise((resolve) => setTimeout(resolve, 800 * 3 ** (config.__tries - 1)));
+    return shopApi(config);
   }
-  return config;
+);
+
+// one time: a token from before session cookies becomes a cookie (the browser stays logged in)
+let upgrade = null;
+const upgradeOldLogin = () => {
+  if (upgrade) return upgrade;
+  const old = takeLegacy(SHOP_TOKEN);
+  upgrade = !old
+    ? Promise.resolve()
+    : axios
+        .post(`${BASE}/customers/session`, {}, { withCredentials: true, headers: { Authorization: `Bearer ${old}` } })
+        .then(() => setSignedIn(true))
+        .catch(() => setSignedIn(false));
+  return upgrade;
+};
+
+shopApi.interceptors.request.use(async (config) => {
+  if (isNative) {
+    // the Android app: the login token from the app's private storage (see platform.js)
+    const token = await tokenReady();
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+    return config;
+  }
+  await upgradeOldLogin();
+  return withCsrf(config);
 });
+shopApi.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    // the session ended (logged out elsewhere, password changed, expired)
+    if (err.response?.status === 401 && !/\/customers\/(login|register|oauth|reset|forgot|session)/.test(err.config?.url || '')) {
+      const was = signedIn();
+      setSignedIn(false);
+      if (isNative) saveAppToken(null);
+      if (was) window.dispatchEvent(new Event('kapu:signed-out')); // the app forgets the account at once
+    }
+    return Promise.reject(err);
+  }
+);
 
 export const store = {
-  get(k, fallback) {
+  get(key, fallback) {
     try {
-      const v = localStorage.getItem(k);
-      return v === null ? fallback : JSON.parse(v);
+      const value = localStorage.getItem(key);
+      return value === null ? fallback : JSON.parse(value);
     } catch {
       return fallback;
     }
   },
-  set(k, v) {
+  set(key, value) {
     try {
-      if (v === undefined || v === null) localStorage.removeItem(k);
-      else localStorage.setItem(k, JSON.stringify(v));
+      if (value === undefined || value === null) localStorage.removeItem(key);
+      else localStorage.setItem(key, JSON.stringify(value));
     } catch {
       /* storage unavailable */
     }
   },
 };
 
-export const errMsg = (err) => err.response?.data?.message || err.message || 'Something went wrong';
-export const ksh = (n) => 'KSh ' + Number(n || 0).toLocaleString('en-KE', { maximumFractionDigits: 0 });
-// Price the customer pays (product discount applied by the server); falls back for old cached data
-export const unitPrice = (p) => (p.salePrice ?? p.price);
-export const isDiscounted = (p) => p.discountPercent > 0 && unitPrice(p) < p.price;
-
+export const errMsg = (err) => err.response?.data?.message || (isNetworkError(err) ? 'No internet connection. Check your connection and try again.' : err.message) || 'Something went wrong';
+export const ksh = (amount) => 'KSh ' + Number(amount || 0).toLocaleString('en-KE', { maximumFractionDigits: 0 });
 export const firstName = (name = '') => name.trim().split(/\s+/)[0] || '';
 // 254712345678 -> 0712 345 678
-export const prettyPhone = (p = '') => (/^254\d{9}$/.test(p) ? `0${p.slice(3, 6)} ${p.slice(6, 9)} ${p.slice(9)}` : p);
+export const prettyPhone = (phone = '') => (/^254\d{9}$/.test(phone) ? `0${phone.slice(3, 6)} ${phone.slice(6, 9)} ${phone.slice(9)}` : phone);
 
-export const STAGE = {
-  new: { label: 'Order received', short: 'Received', icon: '🧾', msg: 'We’ve got your order and will confirm it in a moment.' },
-  accepted: { label: 'Order confirmed', short: 'Confirmed', icon: '👍', msg: 'Your order is confirmed. We’re on it!' },
-  preparing: { label: 'Packing your items', short: 'Packing', icon: '🛍️', msg: 'We’re picking and packing your items.' },
-  ready: { label: 'Ready for pickup', short: 'Ready', icon: '✅', msg: 'Your order is ready! Come collect it and pay at the counter.' },
-  'out-for-delivery': { label: 'On the way', short: 'On the way', icon: '🛵', msg: 'Your rider is on the way to you.' },
-  completed: { label: 'Delivered', short: 'Done', icon: '🎉', msg: 'All done, thank you for shopping with Ordersasa!' },
-  cancelled: { label: 'Cancelled', short: 'Cancelled', icon: '✖️', msg: 'This order was cancelled. Please contact us if this is unexpected.' },
+// Marketplace order statuses, as buyers and sellers see them
+export const ORDER_STATUS = {
+  awaiting_payment: { label: 'Waiting for payment', short: 'Unpaid', icon: '⏳', tone: 'wait' },
+  placed: { label: 'Order placed', short: 'Placed', icon: '🧾', tone: 'new' },
+  confirmed: { label: 'Confirmed by the seller', short: 'Confirmed', icon: '👍', tone: 'go' },
+  shipped: { label: 'On the way', short: 'Shipped', icon: '🚚', tone: 'go' },
+  delivered: { label: 'Delivered', short: 'Delivered', icon: '🎉', tone: 'done' },
+  cancelled: { label: 'Cancelled', short: 'Cancelled', icon: '✖️', tone: 'off' },
 };
-
-// The status key a customer cares about
-export const orderKey = (o) => (o.status === 'open' ? o.stage : o.status);
-
-export function stepsFor(order) {
-  const last = order.type === 'delivery' ? 'out-for-delivery' : 'ready';
-  return ['new', 'accepted', 'preparing', last, 'completed'].map((k) => ({
-    key: k,
-    ...STAGE[k],
-    label: k === 'completed' ? (order.type === 'delivery' ? 'Delivered' : 'Collected') : STAGE[k].label,
-  }));
-}
+export const statusLabel = (order) => (order.status === 'shipped' && order.delivery?.method === 'pickup' ? 'Ready for pickup' : ORDER_STATUS[order.status]?.label || order.status);
+export const isOpenOrder = (order) => ['placed', 'confirmed', 'shipped'].includes(order.status);
 
 export default shopApi;

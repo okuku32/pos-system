@@ -77,13 +77,43 @@ const APPLIANCE_BRANDS = ['Ramtons', 'Von Hotpoint', 'Mika', 'Bruhm', 'Hisense',
 // Field kinds: select (with options), make (select whose value drives a dependent "model"), number, text, yesno
 const year = { key: 'year', label: 'Year of manufacture', type: 'number', min: 1960, max: new Date().getFullYear() + 1, filter: 'range' };
 const mileage = { key: 'mileage', label: 'Mileage (km)', type: 'number', min: 0, max: 2000000, filter: 'max' };
-const colour = { key: 'colour', label: 'Colour', type: 'select', options: ['Black', 'White', 'Silver', 'Grey', 'Blue', 'Red', 'Green', 'Brown', 'Gold', 'Beige', 'Orange', 'Yellow', 'Purple', 'Pink', 'Multi-colour', 'Other'] };
+// colour: filterable everywhere it appears (multi-select swatches in the Filters panel)
+const COLOURS = ['Black', 'White', 'Grey', 'Silver', 'Blue', 'Navy', 'Red', 'Maroon', 'Green', 'Brown', 'Beige', 'Cream', 'Gold', 'Orange', 'Yellow', 'Purple', 'Pink', 'Multi-colour', 'Other'];
+const colour = { key: 'colour', label: 'Colour', type: 'select', options: COLOURS, filter: 'select', colour: true };
 const brandText = { key: 'brand', label: 'Brand', type: 'text', filter: 'text' };
 const make = (makes, label = 'Make') => ({ key: 'make', label, type: 'make', makes, filter: 'select', required: true });
 const model = { key: 'model', label: 'Model', type: 'model', filter: 'select' };
 
+// the kinds of motor vehicle spare parts (the Sell form's “Part type”, and what spare-parts importers say they bring in)
+const SPARE_PART_TYPES = ['Engine & gearbox', 'Brakes', 'Suspension & steering', 'Body parts', 'Lights & electricals', 'Interior', 'Filters & service parts', 'Exhaust', 'Cooling', 'Other'];
 const VEHICLE_CONDITION = ['Brand new', 'Foreign used', 'Locally used'];
+// which years of the vehicle a spare part fits (buyers search "parts for my 2014 Vitz")
+const THIS_YEAR = new Date().getFullYear() + 1;
+const FITS_YEARS = [
+  { key: 'yearFrom', label: 'Fits vehicles from year', type: 'number', min: 1960, max: THIS_YEAR },
+  { key: 'yearTo', label: 'Fits vehicles up to year', type: 'number', min: 1960, max: THIS_YEAR },
+];
 const ITEM_CONDITION = ['New', 'Used', 'Refurbished'];
+// older names for the same units (ads posted before the Kiswahili names): accepted and switched over
+// Lake Victoria fish, by the names Kenyans use (older labels still accepted)
+const VICTORIA_FISH = ['Mbuta (Nile perch)', 'Ngege (tilapia)', 'Obambo (dried / smoked)', 'Mumi (catfish)', 'Fulu', 'Kamongo (lungfish)', 'Other'];
+const VICTORIA_ALIASES = {
+  'Nile perch (mbuta)': 'Mbuta (Nile perch)', 'Tilapia (ngege / sato)': 'Ngege (tilapia)', 'Catfish (mumi)': 'Mumi (catfish)', 'Lungfish (kamongo)': 'Kamongo (lungfish)',
+  Mbuta: 'Mbuta (Nile perch)', 'Nile perch': 'Mbuta (Nile perch)', Ngege: 'Ngege (tilapia)', Tilapia: 'Ngege (tilapia)', Sato: 'Ngege (tilapia)', Obambo: 'Obambo (dried / smoked)', Obambla: 'Obambo (dried / smoked)', Mumi: 'Mumi (catfish)', Catfish: 'Mumi (catfish)', Kamongo: 'Kamongo (lungfish)',
+};
+const victoriaFish = { key: 'fish', label: 'Fish', type: 'select', options: VICTORIA_FISH, filter: 'select', chips: true, required: true, aliases: VICTORIA_ALIASES };
+const UNIT_ALIASES = { Bunch: 'Kifungu (bunch)', 'Heap (fungu)': 'Fungu (heap)', Heap: 'Fungu (heap)', Kifungu: 'Kifungu (bunch)', Fungu: 'Fungu (heap)' };
+
+// what kind of clothing it is (Shirts, Dresses, Watches…): every clothing ad has one, so buyers can browse by type
+const ITEMS = {
+  'womens-clothes': ['Dresses', 'Tops & blouses', 'Shirts', 'T-shirts', 'Skirts', 'Trousers & jeans', 'Suits & blazers', 'Kitenge & ankara', 'Jackets & coats', 'Sweaters & hoodies', 'Lingerie & sleepwear', 'Abayas & hijabs', 'Other'],
+  'mens-clothes': ['Shirts', 'T-shirts & polos', 'Trousers & chinos', 'Jeans', 'Suits & blazers', 'Jackets & coats', 'Sweaters & hoodies', 'Shorts', 'Traditional wear', 'Underwear & socks', 'Other'],
+  'womens-shoes': ['Heels', 'Flats & ballerinas', 'Sneakers', 'Sandals & slippers', 'Boots', 'Wedges', 'Other'],
+  'mens-shoes': ['Official shoes', 'Sneakers', 'Boots', 'Sandals & slippers', 'Loafers', 'Sports shoes', 'Other'],
+  sportswear: ['Jerseys', 'Tracksuits', 'Gym wear', 'Football boots', 'Running shoes', 'Other'],
+  'watches-jewellery': ['Men’s watches', 'Women’s watches', 'Smart watches', 'Necklaces & chains', 'Earrings', 'Rings', 'Bracelets & bangles', 'Sunglasses', 'Belts, caps & ties', 'Other'],
+};
+const itemField = (options) => ({ key: 'item', label: 'Type', type: 'select', options, filter: 'select', required: true });
 
 const CATEGORIES = [
   {
@@ -133,6 +163,7 @@ const CATEGORIES = [
       { slug: 'cctv-security', name: 'CCTV & security', synonyms: ['cctv', 'camera', 'security', 'alarm', 'dvr', 'intercom'], fields: [brandText] },
       { slug: 'smartwatches', name: 'Smart watches & wearables', synonyms: ['smartwatch', 'watch', 'apple watch', 'fitness band'], fields: [brandText] },
     ],
+    commonFields: [colour],
   },
   {
     slug: 'land-property', name: 'Land & property', icon: '🏡', condition: null,
@@ -169,6 +200,7 @@ const CATEGORIES = [
       { slug: 'mosquito-nets', name: 'Mosquito nets', synonyms: ['net', 'mosquito', 'chandarua'], fields: [] },
       { slug: 'towels', name: 'Towels & bath', synonyms: ['towel', 'taulo', 'bathrobe'], fields: [colour] },
     ],
+    commonFields: [colour],
   },
   {
     slug: 'furniture', name: 'Furniture', icon: '🛋️', condition: ITEM_CONDITION,
@@ -182,8 +214,8 @@ const CATEGORIES = [
       { slug: 'office-furniture', name: 'Office furniture', synonyms: ['office chair', 'desk', 'office desk', 'filing cabinet', 'workstation'], fields: [] },
       { slug: 'tv-stands', name: 'TV stands & shelves', synonyms: ['tv stand', 'tv unit', 'shelf', 'shelves', 'bookshelf', 'wall unit'], fields: [] },
       { slug: 'outdoor-furniture', name: 'Outdoor & garden furniture', synonyms: ['outdoor', 'garden', 'patio', 'plastic chairs'], fields: [] },
-      { slug: 'kids-furniture', name: 'Kids furniture', synonyms: ['baby cot', 'cot', 'kids bed', 'high chair'], fields: [] },
     ],
+    commonFields: [colour],
   },
   {
     slug: 'stationery', name: 'Stationery', icon: '✏️', condition: ITEM_CONDITION,
@@ -233,15 +265,15 @@ const CATEGORIES = [
     ],
   },
   {
-    slug: 'spare-parts', name: 'Spare parts', icon: '🔧', condition: ['New (genuine)', 'New (aftermarket)', 'Used (ex-Japan)', 'Used (local)'],
+    slug: 'spare-parts', name: 'Spare parts', icon: '🔧', condition: ['New (genuine)', 'New (aftermarket)', 'Used (ex-Japan)', 'Used (ex-UK)', 'Used (ex-Dubai)', 'Used (local)', 'Refurbished'],
     blurb: 'Parts for cars, motorbikes, trucks, tractors, phones, laptops and appliances.',
     synonyms: ['spare', 'spares', 'spare part', 'parts', 'part', 'vipuri', 'accessories'],
     subs: [
-      { slug: 'car-parts', name: 'Car parts', synonyms: ['car parts', 'engine', 'gearbox', 'suspension', 'shocks', 'brake pads', 'bumper', 'headlight', 'side mirror', 'radiator'],
-        fields: [{ ...make(VEHICLE_MAKES, 'Fits make'), required: false }, { ...model, label: 'Fits model' }, { key: 'partType', label: 'Part type', type: 'select', options: ['Engine & gearbox', 'Brakes', 'Suspension & steering', 'Body parts', 'Lights & electricals', 'Interior', 'Filters & service parts', 'Exhaust', 'Cooling', 'Other'], filter: 'select' }, { key: 'partNo', label: 'Part number', type: 'text' }] },
+      { slug: 'car-parts', name: 'Motor vehicle spare parts', synonyms: ['car parts', 'motor vehicle parts', 'vehicle spares', 'car spares', 'engine', 'gearbox', 'suspension', 'shocks', 'brake pads', 'bumper', 'headlight', 'side mirror', 'radiator', 'ex japan parts'],
+        fields: [{ ...make(VEHICLE_MAKES, 'Fits make'), required: true }, { ...model, label: 'Fits model' }, ...FITS_YEARS, { key: 'partType', label: 'Part type', type: 'select', options: SPARE_PART_TYPES, filter: 'select' }, { key: 'partNo', label: 'Part number', type: 'text' }] },
       { slug: 'tyres-rims', name: 'Tyres & rims', synonyms: ['tyre', 'tire', 'tyres', 'rim', 'rims', 'wheel', 'alloy'], fields: [{ key: 'tyreSize', label: 'Size (e.g. 195/65 R15)', type: 'text', filter: 'text' }, brandText] },
-      { slug: 'motorbike-parts', name: 'Motorbike parts', synonyms: ['boda parts', 'motorbike parts', 'chain', 'sprocket', 'clutch'], fields: [{ ...make(MOTORBIKE_MAKES, 'Fits make'), required: false }, { key: 'partNo', label: 'Part number', type: 'text' }] },
-      { slug: 'truck-parts', name: 'Truck & bus parts', synonyms: ['truck parts', 'lorry parts', 'bus parts'], fields: [{ ...make(VEHICLE_MAKES, 'Fits make'), required: false }, { key: 'partNo', label: 'Part number', type: 'text' }] },
+      { slug: 'motorbike-parts', name: 'Motorbike parts', synonyms: ['boda parts', 'motorbike parts', 'chain', 'sprocket', 'clutch'], fields: [{ ...make(MOTORBIKE_MAKES, 'Fits make'), required: false }, { ...model, label: 'Fits model' }, ...FITS_YEARS, { key: 'partNo', label: 'Part number', type: 'text' }] },
+      { slug: 'truck-parts', name: 'Truck & bus parts', synonyms: ['truck parts', 'lorry parts', 'bus parts'], fields: [{ ...make(VEHICLE_MAKES, 'Fits make'), required: false }, { ...model, label: 'Fits model' }, ...FITS_YEARS, { key: 'partNo', label: 'Part number', type: 'text' }] },
       { slug: 'vehicle-batteries', name: 'Vehicle batteries', synonyms: ['car battery', 'battery', 'chloride exide'], fields: [brandText, { key: 'amps', label: 'Capacity (Ah)', type: 'number', min: 1, max: 400 }] },
       { slug: 'machinery-parts', name: 'Tractor & machinery parts', synonyms: ['tractor parts', 'machinery parts', 'pump parts'], fields: [brandText] },
       { slug: 'phone-laptop-parts', name: 'Phone & laptop parts', synonyms: ['screen', 'lcd', 'display', 'charging port', 'phone battery', 'laptop battery', 'keyboard'], fields: [brandText, { key: 'partNo', label: 'Fits model / part number', type: 'text' }] },
@@ -261,14 +293,14 @@ const CATEGORIES = [
       { slug: 'city-bikes', name: 'City & utility bikes', synonyms: ['black mamba', 'roadmaster', 'utility bike', 'hybrid bike'], fields: [] },
       { slug: 'bicycle-accessories', name: 'Bicycle parts & accessories', synonyms: ['helmet', 'bike light', 'bike pump', 'bike parts'], fields: [] },
     ],
-    commonFields: [brandText,
+    commonFields: [colour, brandText,
       { key: 'wheel', label: 'Wheel size', type: 'select', options: ['12"', '16"', '20"', '24"', '26"', '27.5"', '28"', '29"', '700c'], filter: 'select' },
       { key: 'gears', label: 'Gears', type: 'number', min: 1, max: 30 }],
   },
   {
-    slug: 'kitchen-equipment', name: 'Kitchen equipment', icon: '🍳', condition: ITEM_CONDITION,
-    blurb: 'Cookers, gas cylinders, fridges, microwaves, blenders and commercial kitchen equipment.',
-    synonyms: ['kitchen', 'jikoni', 'appliance', 'catering equipment'],
+    slug: 'appliances', name: 'Appliances', icon: '🔌', condition: ITEM_CONDITION,
+    blurb: 'Cookers, gas cylinders, fridges, microwaves, blenders, kettles, water dispensers and commercial appliances.',
+    synonyms: ['appliance', 'appliances', 'home appliances', 'kitchen appliances', 'kitchen', 'kitchen equipment', 'jikoni', 'vifaa vya nyumbani', 'catering equipment'],
     subs: [
       { slug: 'cookers-ovens', name: 'Cookers & ovens', synonyms: ['cooker', 'oven', 'stove', 'jiko', 'electric cooker', 'gas cooker', 'standing cooker'], fields: [{ key: 'burners', label: 'Burners', type: 'select', options: ['1', '2', '3', '4', '5', '6'], filter: 'select' }, { key: 'power', label: 'Power source', type: 'select', options: ['Gas', 'Electric', 'Gas & electric', 'Charcoal', 'Other'], filter: 'select' }] },
       { slug: 'gas', name: 'Gas cylinders & burners', synonyms: ['gas', 'cylinder', 'meko', 'k-gas', 'total gas', 'pro gas', 'burner', 'regulator'], fields: [{ key: 'kg', label: 'Cylinder size', type: 'select', options: ['3 kg', '6 kg', '13 kg', '22 kg', '50 kg'], filter: 'select' }] },
@@ -277,9 +309,9 @@ const CATEGORIES = [
       { slug: 'blenders', name: 'Blenders, juicers & mixers', synonyms: ['blender', 'juicer', 'mixer', 'food processor'], fields: [] },
       { slug: 'kettles-toasters', name: 'Kettles, toasters & small appliances', synonyms: ['kettle', 'toaster', 'sandwich maker', 'air fryer', 'rice cooker', 'pressure cooker'], fields: [] },
       { slug: 'water-dispensers', name: 'Water dispensers & purifiers', synonyms: ['dispenser', 'water dispenser', 'purifier', 'filter'], fields: [] },
-      { slug: 'commercial-kitchen', name: 'Commercial & hotel kitchen equipment', synonyms: ['deep fryer', 'chipper', 'chips machine', 'chapati machine', 'display', 'commercial', 'hotel', 'restaurant', 'bakery oven'], fields: [] },
+      { slug: 'commercial-kitchen', name: 'Commercial & hotel appliances', synonyms: ['deep fryer', 'chipper', 'chips machine', 'chapati machine', 'display', 'commercial', 'hotel', 'restaurant', 'bakery oven'], fields: [] },
     ],
-    commonFields: [{ key: 'brand', label: 'Brand', type: 'select', options: APPLIANCE_BRANDS, filter: 'select' }],
+    commonFields: [colour, { key: 'brand', label: 'Brand', type: 'select', options: APPLIANCE_BRANDS, filter: 'select' }],
   },
   {
     slug: 'utensils', name: 'Utensils & cookware', icon: '🍽️', condition: ITEM_CONDITION,
@@ -296,26 +328,24 @@ const CATEGORIES = [
       { slug: 'knives-boards', name: 'Knives & chopping boards', synonyms: ['knife', 'kisu', 'chopping board', 'grater', 'peeler'], fields: [] },
       { slug: 'catering', name: 'Hotel & catering utensils', synonyms: ['catering', 'chafing dish', 'tray', 'hotel', 'serving'], fields: [] },
     ],
-    commonFields: [{ key: 'material', label: 'Material', type: 'select', options: ['Stainless steel', 'Aluminium', 'Non-stick', 'Cast iron', 'Ceramic', 'Glass', 'Melamine', 'Plastic', 'Wood', 'Other'], filter: 'select' }, { key: 'pieces', label: 'Pieces in set', type: 'number', min: 1, max: 500 }],
+    commonFields: [colour, { key: 'material', label: 'Material', type: 'select', options: ['Stainless steel', 'Aluminium', 'Non-stick', 'Cast iron', 'Ceramic', 'Glass', 'Melamine', 'Plastic', 'Wood', 'Other'], filter: 'select' }, { key: 'pieces', label: 'Pieces in set', type: 'number', min: 1, max: 500 }],
   },
   {
     slug: 'clothes-shoes', name: 'Clothes & shoes', icon: '👗', condition: ['New', 'Used (mtumba)'],
     blurb: 'Men’s, women’s and kids’ clothes and shoes, new and mtumba.',
     synonyms: ['clothes', 'clothing', 'nguo', 'fashion', 'mtumba', 'wear', 'outfit', 'shoes', 'viatu'],
     subs: [
-      { slug: 'womens-clothes', name: 'Women’s clothes', synonyms: ['dress', 'dresses', 'skirt', 'blouse', 'top', 'leggings', 'gown', 'kitenge', 'ankara', 'lingerie', 'ladies'], fields: [] },
-      { slug: 'mens-clothes', name: 'Men’s clothes', synonyms: ['shirt', 'shirts', 'trouser', 'trousers', 'jeans', 'suit', 'suits', 'tshirt', 't-shirt', 'hoodie', 'jacket', 'khaki', 'gents'], fields: [] },
-      { slug: 'kids-clothes', name: 'Kids & baby clothes', synonyms: ['kids clothes', 'baby clothes', 'school uniform', 'uniform', 'romper'], fields: [] },
-      { slug: 'womens-shoes', name: 'Women’s shoes', synonyms: ['heels', 'sandals', 'flats', 'ladies shoes', 'boots', 'sneakers'], fields: [{ key: 'shoeSize', label: 'Shoe size (EU)', type: 'select', options: ['35', '36', '37', '38', '39', '40', '41', '42', '43'], filter: 'select' }] },
-      { slug: 'mens-shoes', name: 'Men’s shoes', synonyms: ['official shoes', 'sneakers', 'boots', 'loafers', 'sandals', 'gents shoes', 'rubber'], fields: [{ key: 'shoeSize', label: 'Shoe size (EU)', type: 'select', options: ['38', '39', '40', '41', '42', '43', '44', '45', '46', '47'], filter: 'select' }] },
-      { slug: 'kids-shoes', name: 'Kids shoes', synonyms: ['school shoes', 'kids sneakers', 'baby shoes'], fields: [] },
-      { slug: 'sportswear', name: 'Sportswear', synonyms: ['jersey', 'tracksuit', 'gym wear', 'football boots', 'running shoes'], fields: [] },
-      { slug: 'watches-jewellery', name: 'Watches & jewellery', synonyms: ['watch', 'jewelry', 'jewellery', 'necklace', 'earrings', 'ring', 'bracelet', 'saa'], fields: [] },
+      { slug: 'womens-clothes', name: 'Women’s clothes', synonyms: ['dress', 'dresses', 'skirt', 'skirts', 'blouse', 'top', 'tops', 'leggings', 'gown', 'kitenge', 'ankara', 'lingerie', 'ladies', 'abaya', 'ladies wear', 'women wear'], fields: [itemField(ITEMS['womens-clothes'])] },
+      { slug: 'mens-clothes', name: 'Men’s clothes', synonyms: ['shirt', 'shirts', 'trouser', 'trousers', 'jeans', 'suit', 'suits', 'tshirt', 't-shirt', 'hoodie', 'jacket', 'khaki', 'gents', 'polo', 'chinos', 'mens wear', 'men wear'], fields: [itemField(ITEMS['mens-clothes'])] },
+      { slug: 'womens-shoes', name: 'Women’s shoes', synonyms: ['heels', 'sandals', 'flats', 'ladies shoes', 'boots', 'sneakers', 'wedges'], fields: [itemField(ITEMS['womens-shoes']), { key: 'shoeSize', label: 'Shoe size (EU)', type: 'select', options: ['35', '36', '37', '38', '39', '40', '41', '42', '43'], filter: 'select' }] },
+      { slug: 'mens-shoes', name: 'Men’s shoes', synonyms: ['official shoes', 'sneakers', 'boots', 'loafers', 'sandals', 'gents shoes', 'rubber'], fields: [itemField(ITEMS['mens-shoes']), { key: 'shoeSize', label: 'Shoe size (EU)', type: 'select', options: ['38', '39', '40', '41', '42', '43', '44', '45', '46', '47'], filter: 'select' }] },
+      { slug: 'sportswear', name: 'Sportswear', synonyms: ['jersey', 'tracksuit', 'gym wear', 'football boots', 'running shoes'], fields: [itemField(ITEMS.sportswear)] },
+      { slug: 'watches-jewellery', name: 'Watches, jewellery & accessories', synonyms: ['watch', 'watches', 'saa', 'jewelry', 'jewellery', 'necklace', 'earrings', 'ring', 'bracelet', 'sunglasses', 'shades', 'belt', 'cap', 'tie'], fields: [itemField(ITEMS['watches-jewellery'])] },
     ],
     commonFields: [
       brandText,
-      { key: 'size', label: 'Size', type: 'select', options: ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL+', 'Kids', 'One size'], filter: 'select' },
-      { key: 'gender', label: 'For', type: 'select', options: ['Women', 'Men', 'Unisex', 'Girls', 'Boys', 'Baby'], filter: 'select' },
+      { key: 'size', label: 'Size', type: 'select', options: ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL+', 'One size'], filter: 'select' },
+      { key: 'gender', label: 'For', type: 'select', options: ['Women', 'Men', 'Unisex'], filter: 'select' },
       colour,
     ],
   },
@@ -361,10 +391,76 @@ const CATEGORIES = [
     ],
     commonFields: [brandText, { key: 'pack', label: 'Pack size (e.g. 1kg, 5L, carton of 24)', type: 'text' }],
   },
+  // 🍽️ food, side by side: mama mboga, samaki, then cereals
   {
-    slug: 'cooking-products', name: 'Cooking products', icon: '🫒', condition: null,
+    slug: 'fresh-produce', name: 'Fresh produce (mama mboga)', icon: '🥬', condition: null,
+    blurb: 'Sukuma wiki, tomatoes, onions, fruits, potatoes, eggs and fish from mama mbogas and market traders near you.',
+    synonyms: ['mama mboga', 'mboga', 'vegetables', 'vegetable', 'veggies', 'greens', 'fresh produce', 'produce', 'sokoni', 'market', 'matunda', 'fresh food', 'grocer', 'greengrocer'],
+    subs: [
+      { slug: 'vegetables', name: 'Vegetables & greens', synonyms: ['kienyeji', 'mboga za kienyeji', 'traditional vegetables', 'kifungu', 'mrenda', 'mitoo', 'murenda', 'sukuma', 'sukuma wiki', 'kale', 'cabbage', 'kabichi', 'spinach', 'managu', 'terere', 'kunde', 'saga', 'broccoli', 'carrots', 'karoti', 'capsicum', 'pilipili hoho', 'french beans', 'cucumber', 'pumpkin'], fields: [] },
+      { slug: 'tomatoes-onions', name: 'Tomatoes, onions & herbs', synonyms: ['tomato', 'tomatoes', 'nyanya', 'onion', 'onions', 'kitunguu', 'dhania', 'coriander', 'garlic', 'ginger', 'tangawizi', 'chilli', 'pilipili', 'lemon', 'dania'], fields: [] },
+      { slug: 'fruits', name: 'Fruits', synonyms: ['fruit', 'fruits', 'matunda', 'banana', 'ndizi', 'mango', 'embe', 'orange', 'machungwa', 'pineapple', 'nanasi', 'watermelon', 'tikiti', 'avocado', 'parachichi', 'pawpaw', 'apple', 'passion'], fields: [] },
+      { slug: 'potatoes-tubers', name: 'Potatoes, matoke & tubers', synonyms: ['potato', 'potatoes', 'viazi', 'waru', 'sweet potato', 'ngwaci', 'arrowroot', 'nduma', 'cassava', 'mihogo', 'matoke', 'yams'], fields: [] },
+      { slug: 'eggs-poultry', name: 'Eggs & poultry', synonyms: ['egg', 'eggs', 'mayai', 'kienyeji', 'tray of eggs', 'chicken', 'kuku', 'broiler'], fields: [] },
+      { slug: 'fish-meat', name: 'Meat (nyama)', synonyms: ['meat', 'nyama', 'beef', 'goat meat', 'mbuzi', 'mutton', 'pork', 'nguruwe', 'mutura', 'matumbo', 'liver', 'maini', 'butchery'], fields: [] },
+      { slug: 'fresh-cereals', name: 'Green maize, peas & beans', synonyms: ['green maize', 'mahindi', 'maize', 'peas', 'minji', 'njahi', 'githeri', 'fresh beans', 'groundnuts', 'njugu'], fields: [] },
+    ],
+    commonFields: [
+      // greens (sukuma, kienyeji, managu, dhania…) go by the kifungu (KSh 5, 10…); tomatoes & onions per kg, per piece or a fungu
+      { key: 'unit', label: 'Sold per', type: 'select', options: ['Kifungu (bunch)', 'Kg', 'Piece', 'Fungu (heap)', 'Dozen', 'Tray', 'Crate', 'Bag / sack', 'Gorogoro', 'Litre'], filter: 'select', aliases: UNIT_ALIASES },
+      { key: 'grown', label: 'Grown', type: 'select', options: ['Local farm', 'Organic', 'Greenhouse', 'Imported'], filter: 'select' },
+      { ...brandText, label: 'Brand (imported produce)' }, // home-grown greens have none; imported apples, rice… do
+    ],
+  },
+  // 🐟 Samaki, the way Kenyans buy fish: ngege (tilapia) and mbuta (Nile perch) from Lake Victoria, fried or fresh;
+  // fish from other lakes and fish farms; coast seafood (pweza, ngisi, kamba…); and omena (dagaa), fried or fresh / dried.
+  {
+    slug: 'samaki', name: 'Samaki (fish & seafood)', icon: '🐟', condition: null,
+    blurb: 'Fried and fresh Lake Victoria fish (ngege, mbuta), omena, fish from Naivasha, Turkana and fish farms, and seafood from the coast.',
+    synonyms: ['samaki', 'fish', 'fishes', 'fish monger', 'fishmonger', 'fish vendor', 'fish market', 'fish shop', 'rech'],
+    subs: [
+      { slug: 'fried-victoria-fish', name: 'Deep-fried Victoria fish', synonyms: ['fried fish', 'samaki wa kukaanga', 'samaki fry', 'fish fry', 'deep fried fish', 'deep-fried fish', 'fried tilapia', 'fried ngege', 'fried mbuta', 'fried nile perch', 'wet fry', 'dry fry', 'fried sato', 'kisumu fish', 'dunga fish', 'fish and ugali'],
+        fields: [
+          victoriaFish,
+          { key: 'style', label: 'How it’s made', type: 'select', options: ['Deep fried, whole', 'Wet fry (with soup)', 'Dry fry', 'Fried fillets (minofu)', 'Fried, ready to re-fry'], filter: 'select' },
+          { key: 'size', label: 'Size', type: 'select', options: ['Small', 'Medium', 'Large', 'Jumbo / family size'], filter: 'select' },
+        ] },
+      { slug: 'fresh-victoria-fish', name: 'Fresh Victoria fish', synonyms: ['fresh fish', 'tilapia', 'ngege', 'sato', 'nile perch', 'mbuta', 'obambo', 'obambla', 'dried fish', 'smoked fish', 'mumi', 'catfish', 'lake victoria fish', 'victoria fish', 'fish fillet', 'minofu', 'mgongo wazi', 'fish frames', 'obambla', 'fulu', 'fish heads', 'vichwa vya samaki', 'raw fish'],
+        fields: [
+          victoriaFish,
+          { key: 'form', label: 'Sold as', type: 'select', options: ['Whole', 'Cleaned (gutted & scaled)', 'Fillets (minofu)', 'Mgongo wazi (frames)', 'Fish heads', 'Sun-dried', 'Smoked', 'Frozen'], filter: 'select', aliases: { 'Obambla (sun-dried)': 'Sun-dried' } },
+          { key: 'size', label: 'Size', type: 'select', options: ['Small', 'Medium', 'Large', 'Jumbo / family size'], filter: 'select' },
+        ] },
+      { slug: 'lake-fish', name: 'Fresh water lake fish', synonyms: ['lake fish', 'fresh water fish', 'freshwater fish', 'naivasha fish', 'turkana fish', 'baringo fish', 'black bass', 'catfish', 'mumi', 'kamongo', 'lungfish', 'ningu', 'trout', 'carp', 'farmed fish', 'fish farm', 'pond fish', 'dam fish', 'masinga fish'],
+        fields: [
+          { key: 'fish', label: 'Fish', type: 'select', options: ['Tilapia', 'Catfish (mumi)', 'Black bass', 'Lungfish (kamongo)', 'Trout', 'Ningu', 'Carp', 'Other'], filter: 'select', required: true },
+          { key: 'lake', label: 'From', type: 'select', options: ['Lake Naivasha', 'Lake Turkana', 'Lake Baringo', 'Lake Jipe', 'Masinga / dams', 'Fish farm / pond', 'Other lake or river'], filter: 'select' },
+          { key: 'form', label: 'Sold as', type: 'select', options: ['Whole', 'Cleaned (gutted & scaled)', 'Fillets', 'Smoked', 'Sun-dried', 'Frozen', 'Live (fingerlings)'], filter: 'select' },
+        ] },
+      { slug: 'seafood', name: 'Sea foods', synonyms: ['seafood', 'sea food', 'sea foods', 'coast fish', 'mombasa fish', 'lamu fish', 'prawns', 'shrimp', 'kamba', 'lobster', 'kamba mti', 'crab', 'kaa', 'octopus', 'pweza', 'squid', 'ngisi', 'calamari', 'kingfish', 'nguru', 'red snapper', 'changu', 'tuna', 'jodari', 'rabbitfish', 'tafi', 'kolekole', 'barracuda', 'mackerel', 'oysters'],
+        fields: [
+          { key: 'kind', label: 'What it is', type: 'select', options: ['Fish (nguru, changu, tafi, jodari…)', 'Prawns (kamba)', 'Lobster (kamba mti)', 'Crab (kaa)', 'Octopus (pweza)', 'Squid (ngisi)', 'Mixed seafood', 'Other'], filter: 'select', required: true },
+          { key: 'form', label: 'Sold as', type: 'select', options: ['Fresh', 'Frozen', 'Cleaned & ready to cook', 'Cooked / fried', 'Dried'], filter: 'select' },
+        ] },
+      { slug: 'fried-omena', name: 'Deep-fried omena', synonyms: ['fried omena', 'omena fry', 'omena wa kukaanga', 'dagaa wa kukaanga', 'fried dagaa', 'crispy omena', 'ready omena', 'omena ready to eat', 'deep fried omena', 'deep-fried omena'],
+        fields: [
+          { key: 'style', label: 'How it’s made', type: 'select', options: ['Deep fried, crispy', 'Fried with tomatoes & onions', 'Wet fry'], filter: 'select' },
+        ] },
+      { slug: 'fresh-omena', name: 'Fresh omena', synonyms: ['omena', 'dagaa', 'fresh omena', 'fresh dagaa', 'dried omena', 'dry omena', 'sun-dried omena', 'mukene', 'lake victoria sardine', 'clean omena', 'omena without sand', 'omena gorogoro', 'omena kopo'],
+        fields: [
+          { key: 'form', label: 'Sold as', type: 'select', options: ['Fresh (wet)', 'Sun-dried', 'Cleaned, no sand', 'Fish-feed / animal-feed grade'], filter: 'select' },
+        ] },
+    ],
+    commonFields: [
+      { key: 'unit', label: 'Sold per', type: 'select', options: ['Piece', 'Kg', 'Plate (portion)', 'Gorogoro', 'Kopo (tin)', 'Fungu (heap)', 'Bucket (ndoo)', 'Debe', 'Sack', 'Crate / box', 'Carton (frozen)'], filter: 'select', aliases: UNIT_ALIASES },
+      { key: 'from', label: 'Landed at / from', type: 'select', options: ['Kisumu (Dunga, Kichinjio)', 'Homa Bay', 'Mbita / Rusinga', 'Busia (Port Victoria)', 'Siaya (Usenge, Uhanya)', 'Migori (Muhuru Bay)', 'Lake Naivasha', 'Lake Turkana', 'Mombasa / Kilifi coast', 'Lamu', 'Fish farm', 'Imported', 'Other'], filter: 'select' },
+      { ...brandText, label: 'Brand (imported fish)' },
+    ],
+  },
+  {
+    slug: 'cooking-products', name: 'Cereals & cooking products', icon: '🫒', condition: null,
     blurb: 'Cooking oil, flour, rice, sugar, spices and other food ingredients, retail and wholesale.',
-    synonyms: ['cooking', 'food', 'chakula', 'groceries', 'foodstuff', 'ingredients', 'wholesale food'],
+    synonyms: ['cereals', 'cereal', 'nafaka', 'unga', 'flour', 'cooking', 'food', 'chakula', 'groceries', 'foodstuff', 'ingredients', 'wholesale food'],
     subs: [
       { slug: 'cooking-oil', name: 'Cooking oil & fats', synonyms: ['cooking oil', 'mafuta', 'fresh fri', 'elianto', 'rina', 'kimbo', 'cowboy', 'ghee', 'margarine'], fields: [] },
       { slug: 'flour', name: 'Flour (unga)', synonyms: ['flour', 'unga', 'maize flour', 'wheat flour', 'jogoo', 'pembe', 'exe', 'atta'], fields: [] },
@@ -392,11 +488,78 @@ const CATEGORIES = [
     commonFields: [brandText, { key: 'pack', label: 'Pack size (e.g. 500ml, crate of 24)', type: 'text' }],
   },
   {
-    slug: 'other', name: 'Everything else', icon: '🛍️', condition: ITEM_CONDITION,
-    blurb: 'Baby items, sports, tools, farming, services and anything else.',
-    synonyms: ['other', 'misc', 'general'],
+    slug: 'baby-kids', name: 'Baby & kids', icon: '🧸', condition: ['New', 'Used'],
+    blurb: 'Strollers, car seats, cots, feeding, diapers, toys and kids’ clothes and shoes.',
+    synonyms: ['baby', 'babies', 'kids', 'kid', 'children', 'child', 'toddler', 'mtoto', 'watoto', 'infant', 'newborn'],
     subs: [
-      { slug: 'baby-kids', name: 'Baby & kids', synonyms: ['baby', 'stroller', 'pram', 'toys', 'diapers'], fields: [] },
+      { slug: 'baby-gear', name: 'Strollers, car seats & carriers', synonyms: ['stroller', 'pram', 'buggy', 'car seat', 'baby carrier', 'walker', 'baby walker', 'bouncer', 'rocker'], fields: [] },
+      { slug: 'nursery', name: 'Cots, beds & nursery furniture', synonyms: ['cot', 'crib', 'baby cot', 'kids bed', 'bunk bed', 'baby bath', 'changing table', 'playpen', 'baby cot mattress'], fields: [] },
+      { slug: 'feeding', name: 'Feeding & high chairs', synonyms: ['feeding bottle', 'bottle', 'sterilizer', 'breast pump', 'high chair', 'formula', 'nan', 'sippy cup', 'bib'], fields: [] },
+      { slug: 'diapers-care', name: 'Diapers & baby care', synonyms: ['diapers', 'diaper', 'nappies', 'pampers', 'huggies', 'softcare', 'baby wipes', 'wipes', 'baby lotion', 'baby oil'], fields: [] },
+      { slug: 'toys', name: 'Toys & games', synonyms: ['toy', 'toys', 'doll', 'lego', 'puzzle', 'ride on', 'toy car', 'bicycle for kids', 'teddy', 'board game', 'educational toys'], fields: [] },
+      { slug: 'kids-clothes', name: 'Baby & kids clothes', synonyms: ['baby clothes', 'kids clothes', 'romper', 'onesie', 'school uniform', 'uniform', 'baby shawl', 'nguo za watoto'], fields: [{ key: 'size', label: 'Size', type: 'select', options: ['Newborn', '0-3 months', '3-6 months', '6-12 months', '1-2 years', '2-4 years', '4-6 years', '6-8 years', '8-10 years', '10-12 years', '12+ years'], filter: 'select' }] },
+      { slug: 'kids-shoes', name: 'Kids shoes', synonyms: ['school shoes', 'kids sneakers', 'baby shoes', 'kids sandals'], fields: [{ key: 'shoeSize', label: 'Shoe size (EU)', type: 'select', options: ['18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31', '32', '33', '34', '35', '36', '37'], filter: 'select' }] },
+      { slug: 'maternity', name: 'Maternity & mum', synonyms: ['maternity', 'maternity dress', 'nursing', 'pregnancy', 'baby shower'], fields: [] },
+      { slug: 'school-items', name: 'School bags & items', synonyms: ['school bag', 'lunch box', 'water bottle', 'pencil case', 'back to school'], fields: [] },
+    ],
+    commonFields: [colour, 
+      brandText,
+      { key: 'gender', label: 'For', type: 'select', options: ['Girls', 'Boys', 'Unisex'], filter: 'select' },
+      { key: 'age', label: 'Age group', type: 'select', options: ['0-12 months', '1-3 years', '3-5 years', '5-8 years', '8-12 years', '12+ years'], filter: 'select' },
+    ],
+  },
+  {
+    slug: 'pharmacy', name: 'Pharmacy & chemist', icon: '💊', condition: null, chemistOnly: true,
+    blurb: 'Medicines, vitamins, first aid, medical devices and health products from licensed chemists, checked by our team.',
+    synonyms: ['chemist', 'pharmacy', 'dawa', 'madawa', 'medicine', 'medicines', 'drugs', 'duka la dawa', 'health', 'afya'],
+    subs: [
+      { slug: 'otc-medicine', name: 'Pain, cold & flu', synonyms: ['panadol', 'painkiller', 'pain killer', 'cough syrup', 'cough', 'flu', 'cold', 'piriton', 'hedex', 'mara moja', 'paracetamol', 'ibuprofen', 'headache', 'fever'], fields: [] },
+      { slug: 'prescription-medicine', name: 'Prescription medicines', synonyms: ['prescription', 'antibiotic', 'antibiotics', 'amoxil', 'blood pressure tablets', 'diabetes tablets', 'insulin'], fields: [] },
+      { slug: 'vitamins', name: 'Vitamins & supplements', synonyms: ['vitamin', 'vitamins', 'supplement', 'multivitamin', 'vitamin c', 'zinc', 'omega 3', 'folic acid', 'iron tablets'], fields: [] },
+      { slug: 'first-aid', name: 'First aid & wound care', synonyms: ['first aid', 'bandage', 'plaster', 'elastoplast', 'gauze', 'cotton wool', 'spirit', 'antiseptic', 'first aid kit'], fields: [] },
+      { slug: 'medical-devices', name: 'Medical devices & tests', synonyms: ['bp machine', 'blood pressure machine', 'glucometer', 'sugar machine', 'thermometer', 'nebulizer', 'oximeter', 'test strips', 'wheelchair', 'crutches'], fields: [] },
+      { slug: 'mother-baby-health', name: 'Mother & baby health', synonyms: ['baby formula', 'gripe water', 'teething', 'ors', 'zinc for baby', 'maternity pads'], fields: [] },
+      { slug: 'sexual-health', name: 'Sexual & reproductive health', synonyms: ['condom', 'condoms', 'pregnancy test', 'family planning', 'p2', 'lubricant'], fields: [] },
+      { slug: 'medicated-skin', name: 'Medicated skin & hygiene', synonyms: ['medicated soap', 'acne cream', 'antifungal', 'sanitary pads', 'mouthwash', 'dettol', 'sunscreen'], fields: [] },
+    ],
+    commonFields: [
+      { key: 'rx', label: 'Medicine type', type: 'select', options: ['Over the counter', 'Prescription needed'], filter: 'select', required: true },
+      brandText,
+      { key: 'pack', label: 'Pack size (e.g. 100 tablets, 200ml)', type: 'text' },
+    ],
+  },
+  {
+    slug: 'african-crafts', name: 'African crafts', icon: '🎨', condition: ['New (handmade)', 'Vintage / antique', 'Used'],
+    blurb: 'Handmade Kenyan art and crafts: paintings, wood and soapstone carvings, kiondos, beadwork, leather and fabrics. Many from Kariokor’s craft makers.',
+    synonyms: ['craft', 'crafts', 'african craft', 'curio', 'curios', 'handmade', 'handicraft', 'art', 'artwork', 'sanaa', 'kazi za mikono', 'souvenir', 'kariokor', 'kariakor'],
+    subs: [
+      { slug: 'paintings', name: 'Paintings & wall art', synonyms: ['painting', 'tinga tinga', 'tingatinga', 'canvas', 'batik', 'art', 'wall art', 'portrait', 'picha'],
+        fields: [{"key":"craftType","label":"Type","type":"select","options":["Tinga Tinga","Canvas painting","Batik","Watercolour","Sand & mixed media","Portrait","Wall hanging"],"filter":"select","required":true}, { key: 'size', label: 'Size (cm, e.g. 60 × 90)', type: 'text' }, { key: 'frame', label: 'Frame', type: 'select', options: ['Framed', 'Unframed', 'Stretched canvas', 'Rolled'], filter: 'select' }] },
+      { slug: 'wood-carvings', name: 'Wood carvings', synonyms: ['carving', 'wood carving', 'akamba', 'kamba carving', 'mask', 'masks', 'sculpture', 'ebony', 'mpingo', 'giraffe', 'elephant', 'kinyago', 'chonga'],
+        fields: [{"key":"craftType","label":"Type","type":"select","options":["Animal figures","Masks","Human figures","Bowls & kitchenware","Stools & furniture","Walking sticks","Decor & wall art"],"filter":"select","required":true}, { key: 'material', label: 'Wood', type: 'select', options: ['Mahogany', 'Ebony / mpingo', 'Olive wood', 'Jacaranda', 'Mango wood', 'Teak', 'Other wood'], filter: 'select' }, { key: 'size', label: 'Size (cm)', type: 'text' }] },
+      { slug: 'soapstone-carvings', name: 'Soapstone carvings', synonyms: ['soapstone', 'kisii', 'kisii stone', 'stone carving', 'chess set', 'candle holder', 'jiwe'],
+        fields: [{"key":"craftType","label":"Type","type":"select","options":["Animal figures","Bowls & dishes","Chess & games","Candle holders","Vases","Sculptures & abstract"],"filter":"select","required":true}, { key: 'size', label: 'Size (cm)', type: 'text' }] },
+      { slug: 'hand-sewn', name: 'Hand-sewn & woven', synonyms: ['kiondo', 'kiondos', 'basket', 'baskets', 'sisal', 'woven', 'weaving', 'embroidery', 'hand sewn', 'handsewn', 'table mat', 'cushion', 'kikapu', 'shona'],
+        fields: [{"key":"craftType","label":"Type","type":"select","options":["Kiondo (sisal bag)","Baskets","Embroidery","Table mats & runners","Cushion covers","Patchwork & quilts","Dolls & toys"],"filter":"select","required":true}, { key: 'material', label: 'Material', type: 'select', options: ['Sisal', 'Banana fibre', 'Palm / ukindu', 'Cotton', 'Wool', 'Kitenge fabric', 'Mixed'], filter: 'select' }] },
+      { slug: 'beadwork', name: 'Beadwork & jewellery', synonyms: ['beads', 'beaded', 'beadwork', 'maasai beads', 'shanga', 'necklace', 'bracelet', 'earrings', 'choker', 'collar'],
+        fields: [{"key":"craftType","label":"Type","type":"select","options":["Necklaces & collars","Bracelets & bangles","Earrings","Belts","Key holders & decor","Bags & purses"],"filter":"select","required":true}] },
+      { slug: 'leather-crafts', name: 'Leather crafts', synonyms: ['leather', 'leather sandals', 'akala', 'leather bag', 'leather belt', 'journal', 'ngozi'],
+        fields: [{"key":"craftType","label":"Type","type":"select","options":["Sandals","Bags","Belts","Wallets","Journals & book covers","Decor"],"filter":"select","required":true}] },
+      { slug: 'african-textiles', name: 'Textiles & fabrics', synonyms: ['kikoi', 'shuka', 'maasai shuka', 'kanga', 'leso', 'kitenge fabric', 'batik fabric', 'throw', 'blanket'],
+        fields: [{"key":"craftType","label":"Type","type":"select","options":["Kikoi","Maasai shuka","Kanga / leso","Kitenge fabric","Batik fabric","Throws & blankets"],"filter":"select","required":true}, { key: 'size', label: 'Size', type: 'text' }] },
+    ],
+    commonFields: [
+      { key: 'artist', label: 'Artist / maker', type: 'text', filter: 'text' },
+      { key: 'madeIn', label: 'Made in (e.g. Kisii, Machakos, Kariokor)', type: 'text' },
+      { key: 'madeToOrder', label: 'Availability', type: 'select', options: ['Ready now', 'Made to order'], filter: 'select' },
+      colour,
+    ],
+  },
+  {
+    slug: 'other', name: 'Other', icon: '🛍️', condition: ITEM_CONDITION,
+    blurb: 'Can’t find the right category? Post it here: sports, tools, building materials, farming, services and anything else.',
+    synonyms: ['other', 'others', 'misc', 'general', 'everything else', 'nyingine'],
+    subs: [
       { slug: 'sports', name: 'Sports & fitness', synonyms: ['gym', 'treadmill', 'dumbbell', 'football', 'fitness'], fields: [] },
       { slug: 'tools', name: 'Tools & building materials', synonyms: ['tools', 'drill', 'cement', 'iron sheets', 'mabati', 'hardware', 'building'], fields: [] },
       { slug: 'farming', name: 'Farming & animals', synonyms: ['farm', 'seeds', 'fertilizer', 'chicken', 'kuku', 'cow', 'ng\'ombe', 'goat', 'mbuzi', 'dairy cow', 'water tank'], fields: [] },
@@ -408,16 +571,80 @@ const CATEGORIES = [
 
 const COUNTIES = ['Nairobi', 'Mombasa', 'Kiambu', 'Nakuru', 'Kisumu', 'Machakos', 'Kajiado', 'Uasin Gishu', 'Kilifi', 'Kwale', 'Meru', 'Nyeri', 'Murang\'a', 'Kirinyaga', 'Embu', 'Kakamega', 'Bungoma', 'Kericho', 'Kisii', 'Nyamira', 'Laikipia', 'Nyandarua', 'Narok', 'Bomet', 'Kitui', 'Makueni', 'Tharaka-Nithi', 'Isiolo', 'Marsabit', 'Garissa', 'Wajir', 'Mandera', 'Lamu', 'Tana River', 'Taita-Taveta', 'Turkana', 'West Pokot', 'Samburu', 'Trans Nzoia', 'Elgeyo-Marakwet', 'Nandi', 'Baringo', 'Siaya', 'Homa Bay', 'Migori', 'Busia', 'Vihiga'];
 
+// "Other …" in every category, for items that don't fit any of its types (e.g. "Other electronics")
+for (const category of CATEGORIES) {
+  if (category.slug === 'other' || category.subs.some((sub) => sub.other)) continue;
+  const short = category.slug === 'samaki' ? 'fish & seafood' : category.name.replace(/\s*\(.*\)\s*/g, ' ').trim();
+  category.subs.push({ slug: `other-${category.slug}`, name: `Other ${/^(African|Samaki)/.test(short) ? short : short.charAt(0).toLowerCase() + short.slice(1)}`, synonyms: [], fields: [], other: true });
+}
+for (const sub of CATEGORIES.find((category) => category.slug === 'other').subs) if (sub.slug === 'misc') sub.other = true;
+
 // ----- lookups
-const bySlug = new Map(CATEGORIES.map((c) => [c.slug, c]));
+const bySlug = new Map(CATEGORIES.map((category) => [category.slug, category]));
 const getCategory = (slug) => bySlug.get(slug) || null;
-const getSub = (cat, sub) => getCategory(cat)?.subs.find((s) => s.slug === sub) || null;
+const getSub = (cat, sub) => getCategory(cat)?.subs.find((text) => text.slug === sub) || null;
 // Every field an ad in this sub-category can have
 const fieldsFor = (cat, sub) => {
-  const c = getCategory(cat);
-  const s = getSub(cat, sub);
-  if (!c || !s) return [];
-  return [...(s.fields || []), ...(c.commonFields || [])];
+  const category = getCategory(cat);
+  const subcategory = getSub(cat, sub);
+  if (!category || !subcategory) return [];
+  const out = [];
+  for (const item of [...(subcategory.fields || []), ...(category.commonFields || [])]) if (!out.some((element) => element.key === item.key)) out.push(item);
+  return out;
 };
+// categories whose ads can have a colour (for the colour filter on category and search pages)
+const hasColour = (cat) => (getCategory(cat)?.subs || []).some((sub) => fieldsFor(cat, sub.slug).some((item) => item.key === 'colour'));
 
-module.exports = { CATEGORIES, COUNTIES, getCategory, getSub, fieldsFor };
+const ITEM_WORDS = [
+  ['Smart watches', /smart ?watch|apple watch|fitness band|smartband/],
+  ['Women’s watches', /(ladies|lady|women|woman)\W.*watch|watch\W.*(ladies|lady|women)/],
+  ['Men’s watches', /watch/],
+  ['Football boots', /football boot|soccer boot|studs/],
+  ['Running shoes', /running shoe/],
+  ['T-shirts & polos', /t-?shirt|\btees?\b|polo/],
+  ['T-shirts', /t-?shirt|\btees?\b/],
+  ['Shirts', /shirt/],
+  ['Dresses', /dress|gown/],
+  ['Kitenge & ankara', /kitenge|ankara|kikoi/],
+  ['Tops & blouses', /blouse|\btops?\b|crop/],
+  ['Skirts', /skirt/],
+  ['Jeans', /jean/],
+  ['Trousers & jeans', /trouser|jean|pants|chino/],
+  ['Trousers & chinos', /trouser|pants|chino/],
+  ['Suits & blazers', /suit|blazer/],
+  ['Jackets & coats', /jacket|coat/],
+  ['Sweaters & hoodies', /sweater|hoodie|cardigan|pullover|sweatshirt/],
+  ['Shorts', /short/],
+  ['Lingerie & sleepwear', /lingerie|\bbras?\b|pyjama|pajama|nightdress|sleepwear|nightie/],
+  ['Abayas & hijabs', /abaya|hijab|buibui/],
+  ['Traditional wear', /kanzu|dashiki|traditional|kofia/],
+  ['Underwear & socks', /boxer|sock|underwear|briefs|vest/],
+  ['Jerseys', /jersey/],
+  ['Tracksuits', /tracksuit/],
+  ['Gym wear', /gym|legging|yoga/],
+  ['Official shoes', /official|oxford|derby|brogue/],
+  ['Sneakers', /sneaker|trainer|air ?force|jordan|canvas shoe/],
+  ['Heels', /heel|stiletto|\bpumps?\b/],
+  ['Wedges', /wedge/],
+  ['Flats & ballerinas', /\bflats?\b|ballerina|doll shoe/],
+  ['Boots', /boot/],
+  ['Sandals & slippers', /sandal|slipper|flip ?flop|open shoe|crocs/],
+  ['Loafers', /loafer|moccasin/],
+  ['Sports shoes', /sport|running|gym/],
+  ['Necklaces & chains', /necklace|chain|pendant/],
+  ['Earrings', /earring/],
+  ['Rings', /\brings?\b/],
+  ['Bracelets & bangles', /bracelet|bangle/],
+  ['Sunglasses', /sunglass|shades|spectacles/],
+  ['Belts, caps & ties', /belt|\bcaps?\b|\bties?\b|\bhats?\b/],
+];
+// best "Type" for an ad from its title and description (or "Other")
+function guessItem(sub, text = '') {
+  const opts = ITEMS[sub];
+  if (!opts) return null;
+  const input = String(text).toLowerCase();
+  for (const [opt, rx] of ITEM_WORDS) if (opts.includes(opt) && rx.test(input)) return opt;
+  return 'Other';
+}
+
+module.exports = { VEHICLE_MAKES, SPARE_PART_TYPES, ITEMS, guessItem, CATEGORIES, COUNTIES, COLOURS, getCategory, getSub, fieldsFor, hasColour };

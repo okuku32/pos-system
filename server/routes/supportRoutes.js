@@ -1,24 +1,27 @@
-const r = require('express').Router();
+const router = require('express').Router();
+require('../security/sanitize').guardIds(router); // :id parameters must be database ids
 const { rateLimit } = require('express-rate-limit');
-const c = require('../controllers/supportController');
-const { protect } = require('../middleware/auth');
+const supportController = require('../controllers/supportController');
+const { protect, can } = require('../middleware/auth');
 
 const opts = { standardHeaders: 'draft-8', legacyHeaders: false };
 // Public chat endpoints: generous for normal chatting, tight enough to stop spam
-const startLimit = rateLimit({ ...opts, windowMs: 60 * 60 * 1000, limit: 8, message: { message: 'You’ve started several conversations recently. Please continue an existing one or try again later.' } });
-const msgLimit = rateLimit({ ...opts, windowMs: 60 * 1000, limit: 20, message: { message: 'You’re sending messages too quickly. Please wait a moment.' } });
-const readLimit = rateLimit({ ...opts, windowMs: 60 * 1000, limit: 120 });
+const startLimit = rateLimit({ ...require('../security/rateStore')(), ...opts, windowMs: 60 * 60 * 1000, limit: 8, message: { message: 'You’ve started several conversations recently. Please continue an existing one or try again later.' } });
+const msgLimit = rateLimit({ ...require('../security/rateStore')(), ...opts, windowMs: 60 * 1000, limit: 20, message: { message: 'You’re sending messages too quickly. Please wait a moment.' } });
+const readLimit = rateLimit({ ...require('../security/rateStore')(), ...opts, windowMs: 60 * 1000, limit: 120 });
 
 // customer (no login needed)
-r.post('/threads', startLimit, c.start);
-r.get('/threads/:token', readLimit, c.get);
-r.post('/threads/:token/messages', msgLimit, c.customerMessage);
-r.post('/threads/:token/read', readLimit, c.customerRead);
+router.post('/threads', startLimit, supportController.start);
+router.post('/session', readLimit, supportController.session); // move a conversation's secret into the httpOnly cookie
+// ":token" may be "me": the secret then comes from the httpOnly cookie, never from the page
+router.get('/threads/:token', readLimit, supportController.useCookieToken, supportController.get);
+router.post('/threads/:token/messages', msgLimit, supportController.useCookieToken, supportController.customerMessage);
+router.post('/threads/:token/read', readLimit, supportController.useCookieToken, supportController.customerRead);
 
 // staff (any logged-in staff member)
-r.get('/', protect, c.list);
-r.get('/:id', protect, c.staffGet);
-r.post('/:id/reply', protect, c.reply);
-r.patch('/:id', protect, c.setStatus);
+router.get('/', protect, can('support'), supportController.list);
+router.get('/:id', protect, can('support'), supportController.staffGet);
+router.post('/:id/reply', protect, can('support'), supportController.reply);
+router.patch('/:id', protect, can('support'), supportController.setStatus);
 
-module.exports = r;
+module.exports = router;

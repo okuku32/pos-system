@@ -1,0 +1,28 @@
+{
+  "id": "/",
+  "name": "Kapu: Sell fast. Buy smart. Pay safe.",
+  "short_name": "Kapu",
+  "description": "Buy and sell seamlessly in Kenya: cars, phones, furniture, clothes, groceries and more. Chat with sellers, pay safely with M-Pesa, delivered by our riders.",
+  "lang": "en-KE",
+  "dir": "ltr",
+  "start_url": "/?source=app",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#faf8f5",
+  "theme_color": "#ff5a1f",
+  "categories": ["shopping", "business", "lifestyle"],
+  "prefer_related_applications": false,
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Sell something", "short_name": "Sell", "url": "/market/sell?source=app", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] },
+    { "name": "My orders", "short_name": "Orders", "url": "/orders?source=app", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Chats", "short_name": "Chats", "url": "/market/messages?source=app", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Importers: latest arrivals", "short_name": "Importers", "url": "/importers?latest=1&source=app", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

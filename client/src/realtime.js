@@ -8,7 +8,9 @@ const ORIGIN = (import.meta.env.VITE_API_URL || '').replace(/\/api\/?$/, '') || 
 // one is torn down immediately. Deferring means that throwaway mount never opens a socket, so Vite's
 // proxy no longer logs "ws proxy socket error: ECONNABORTED" on every page load.
 export function connectSocket(auth) {
-  const socket = io(ORIGIN, { auth, transports: ['websocket', 'polling'], autoConnect: false });
+  // tryAllTransports: if the WebSocket can't connect (some proxies, e.g. Vercel forwarding to our server, don't pass
+  // it), fall back to long-polling (ordinary HTTP requests) instead of failing
+  const socket = io(ORIGIN, { auth, transports: ['websocket', 'polling'], tryAllTransports: true, autoConnect: false, withCredentials: true });
   let closed = false;
   const timer = setTimeout(() => {
     if (!closed) socket.connect();
@@ -28,18 +30,18 @@ export function chime() {
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return;
     const ctx = new Ctx();
-    [880, 1320].forEach((freq, i) => {
+    [880, 1320].forEach((freq, index) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'sine';
       osc.frequency.value = freq;
-      const t = ctx.currentTime + i * 0.18;
-      gain.gain.setValueAtTime(0.0001, t);
-      gain.gain.exponentialRampToValueAtTime(0.25, t + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+      const time = ctx.currentTime + index * 0.18;
+      gain.gain.setValueAtTime(0.0001, time);
+      gain.gain.exponentialRampToValueAtTime(0.25, time + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.35);
       osc.connect(gain).connect(ctx.destination);
-      osc.start(t);
-      osc.stop(t + 0.4);
+      osc.start(time);
+      osc.stop(time + 0.4);
     });
     setTimeout(() => ctx.close(), 1000);
   } catch {
@@ -51,11 +53,11 @@ export function chime() {
 export function desktopNotify(title, body, onClick) {
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
   try {
-    const n = new Notification(title, { body, tag: title + body });
-    n.onclick = () => {
+    const notification = new Notification(title, { body, tag: title + body });
+    notification.onclick = () => {
       window.focus();
       onClick?.();
-      n.close();
+      notification.close();
     };
   } catch {
     /* some browsers only allow notifications from a service worker */

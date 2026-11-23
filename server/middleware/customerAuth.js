@@ -1,44 +1,62 @@
 const jwt = require('jsonwebtoken');
 const Customer = require('../models/Customer');
-const { requireTenant, currentTenant } = require('../tenancy/context');
-const { tokenMatchesTenant } = require('../tenancy/tokens');
+const session = require('../security/session');
 
-// Customer tokens carry typ:'customer'; staff tokens never do.
-exports.signCustomer = (id) => jwt.sign({ id, typ: 'customer', tid: requireTenant().slug }, process.env.JWT_SECRET, { expiresIn: '30d' });
+// Customer sessions (buyers, sellers, riders, shopping agents). The login creates a server-side session;
+// the browser keeps it in an httpOnly cookie, API clients may send it as a Bearer token.
+exports.issueCustomer = (req, res, customer) => session.issue(req, res, 'customer', customer);
 
+const load = async (id, iat) => {
+  const customer = await Customer.findById(id);
+  if (!customer || !customer.active) return null;
+  // a password change / reset signs out every device that logged in before it
+  if (customer.passwordChangedAt && iat * 1000 < customer.passwordChangedAt.getTime() - 1000) return null;
+  return customer;
+};
+
+// a token → the customer (or null). Used by the API and the live-updates socket.
 exports.verifyCustomerToken = async (token) => {
-  const decoded = jwt.verify(token, process.env.JWT_SECRET);
-  if (decoded.typ !== 'customer') return null;
-  if (!tokenMatchesTenant(decoded, currentTenant())) return null; // customer account of a different shop
-  const c = await Customer.findById(decoded.id);
-  if (!c || !c.active) return null;
-  // a password reset signs out every device that logged in before it
-  if (c.passwordChangedAt && decoded.iat * 1000 < c.passwordChangedAt.getTime() - 1000) return null;
-  return c;
+  const decoded = await session.check(token, 'customer');
+  if (!decoded) return null;
+  const record = await load(decoded.id, decoded.iat);
+  if (record) record.$locals.sessionKey = decoded.sessionKey;
+  return record;
+};
+
+// tokens from before server-side sessions (no session id): accepted ONLY to be swapped for a session once
+exports.verifyLegacyToken = async (token) => {
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
+    if (decoded.typ !== 'customer' || decoded.sid) return null;
+    return load(decoded.id, decoded.iat);
+  } catch {
+    return null;
+  }
 };
 
 exports.protectCustomer = async (req, res, next) => {
-  const header = req.headers.authorization || '';
-  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+  const { token } = session.tokenFrom(req, 'customer');
   if (!token) return res.status(401).json({ message: 'Please log in to continue' });
   try {
-    const c = await exports.verifyCustomerToken(token);
-    if (!c) return res.status(401).json({ message: 'Please log in to continue' });
-    req.customer = c;
+    const tokenValue = await exports.verifyCustomerToken(token);
+    if (!tokenValue) return res.status(401).json({ message: 'Your session has expired, please log in again' });
+    req.customer = tokenValue;
+    req.customerSession = tokenValue.$locals.sessionKey;
     next();
-  } catch {
-    res.status(401).json({ message: 'Your session has expired, please log in again' });
+  } catch (error) {
+    next(error);
   }
 };
 
 // Public pages that show a little more to a logged-in customer (e.g. "this is your ad"): never blocks
 exports.optionalCustomer = async (req, res, next) => {
-  const header = req.headers.authorization || '';
-  if (header.startsWith('Bearer ')) {
+  const { token } = session.tokenFrom(req, 'customer');
+  if (token) {
     try {
-      req.customer = (await exports.verifyCustomerToken(header.slice(7))) || undefined;
+      req.customer = (await exports.verifyCustomerToken(token)) || undefined;
+      if (req.customer) req.customerSession = req.customer.$locals.sessionKey;
     } catch {
-      /* expired or invalid: treat as a visitor */
+      /* treat as a visitor */
     }
   }
   next();

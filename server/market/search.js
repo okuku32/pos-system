@@ -8,8 +8,8 @@ const { CATEGORIES, COUNTIES, getCategory, getSub, fieldsFor } = require('./cate
 
 const STOP = new Set(['a', 'an', 'the', 'for', 'of', 'in', 'on', 'and', 'with', 'to', 'at', 'by', 'from', 'sale', 'selling', 'sell', 'buy', 'cheap', 'used', 'new', 'kenya', 'ya', 'na', 'kwa', 'za', 'la', 'is', 'my', 'i', 'want', 'looking', 'need']);
 
-const normalize = (s) =>
-  String(s || '')
+const normalize = (text) =>
+  String(text || '')
     .toLowerCase()
     .normalize('NFKD')
     .replace(/[̀-ͯ]/g, '')
@@ -19,15 +19,15 @@ const normalize = (s) =>
     .trim();
 
 // Very light stemming so singular/plural forms meet
-function stem(w) {
-  if (w.length <= 3 || /\d/.test(w)) return w;
-  if (w.endsWith('ies') && w.length > 4) return w.slice(0, -3) + 'y';
-  if (/(sses|shes|ches|xes|zes)$/.test(w)) return w.slice(0, -2);
-  if (w.endsWith('s') && !w.endsWith('ss') && !w.endsWith('us')) return w.slice(0, -1);
-  return w;
+function stem(word) {
+  if (word.length <= 3 || /\d/.test(word)) return word;
+  if (word.endsWith('ies') && word.length > 4) return word.slice(0, -3) + 'y';
+  if (/(sses|shes|ches|xes|zes)$/.test(word)) return word.slice(0, -2);
+  if (word.endsWith('s') && !word.endsWith('ss') && !word.endsWith('us')) return word.slice(0, -1);
+  return word;
 }
 
-const tokens = (s) => normalize(s).split(' ').filter((w) => w && !STOP.has(w)).map(stem);
+const tokens = (text) => normalize(text).split(' ').filter((item) => item && !STOP.has(item)).map(stem);
 
 // The words an ad can be found by: title, category names and their synonyms, details (make, model, year...),
 // condition and location. Stored on the ad (indexed) so searching is a fast index lookup.
@@ -35,27 +35,30 @@ function keywordsFor(listing) {
   const cat = getCategory(listing.category);
   const sub = getSub(listing.category, listing.sub);
   const parts = [listing.title, cat?.name, ...(cat?.synonyms || []), sub?.name, ...(sub?.synonyms || []), listing.condition, listing.county, listing.area];
-  for (const f of fieldsFor(listing.category, listing.sub)) {
-    const v = listing.attrs?.[f.key];
-    if (v !== undefined && v !== null && v !== '' && f.type !== 'number') parts.push(String(v));
-    if (f.key === 'year' && v) parts.push(String(v));
+  for (const field of fieldsFor(listing.category, listing.sub)) {
+    const attr = listing.attrs?.[field.key];
+    if (attr !== undefined && attr !== null && attr !== '' && field.type !== 'number') parts.push(String(attr));
+    if (field.key === 'year' && attr) parts.push(String(attr));
   }
+  if (listing.wholesale?.enabled) parts.push('wholesale bulk jumla wholesaler', listing.wholesale.unit || '');
+  const origin = require('./origins').getOrigin(listing.origin);
+  if (origin) parts.push(origin.name, origin.label, ...origin.words, origin.key === 'local' ? '' : 'imported import imports');
   // a bit of the description too, so specific words ("leather", "sunroof", "beach") are findable
   parts.push(String(listing.description || '').slice(0, 600));
-  return [...new Set(parts.flatMap((p) => tokens(p)).filter((w) => w.length > 1 || /\d/.test(w)))].slice(0, 400);
+  return [...new Set(parts.flatMap((part) => tokens(part)).filter((item) => item.length > 1 || /\d/.test(item)))].slice(0, 400);
 }
 
-const escapeRx = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const escapeRx = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 // "500k" -> 500000, "1.2m" -> 1200000, "50,000" -> 50000
-function money(v) {
-  const m = String(v).replace(/,/g, '').match(/^(\d+(?:\.\d+)?)(k|m|mn|million|thousand|bob|ksh|kes|\/=)?$/);
-  if (!m) return null;
-  const n = parseFloat(m[1]);
-  const unit = m[2] || '';
-  if (unit === 'k' || unit === 'thousand') return Math.round(n * 1000);
-  if (unit.startsWith('m')) return Math.round(n * 1000000);
-  return Math.round(n);
+function money(amount) {
+  const match = String(amount).replace(/,/g, '').match(/^(\d+(?:\.\d+)?)(k|m|mn|million|thousand|bob|ksh|kes|\/=)?$/);
+  if (!match) return null;
+  const number = parseFloat(match[1]);
+  const unit = match[2] || '';
+  if (unit === 'k' || unit === 'thousand') return Math.round(number * 1000);
+  if (unit.startsWith('m')) return Math.round(number * 1000000);
+  return Math.round(number);
 }
 
 // Pull price phrases out of the query text
@@ -64,95 +67,95 @@ function parsePrice(raw) {
   let min = null;
   let max = null;
   const take = (rx, fn) => {
-    text = text.replace(rx, (all, ...g) => {
-      const ok = fn(...g);
+    text = text.replace(rx, (all, ...group1) => {
+      const ok = fn(...group1);
       return ok ? ' ' : all;
     });
   };
-  const N = '(\\d[\\d,]*(?:\\.\\d+)?\\s?(?:k|m|mn|million|thousand)?)';
-  take(new RegExp(`\\b${N}\\s*(?:-|to)\\s*${N}\\b`, 'g'), (a, b) => {
-    const x = money(a.replace(/\s/g, ''));
-    const y = money(b.replace(/\s/g, ''));
-    if (x === null || y === null || y < 100) return false;
-    min = Math.min(x, y);
-    max = Math.max(x, y);
+  const input = '(\\d[\\d,]*(?:\\.\\d+)?\\s?(?:k|m|mn|million|thousand)?)';
+  take(new RegExp(`\\b${input}\\s*(?:-|to)\\s*${input}\\b`, 'g'), (value, other) => {
+    const amount = money(value.replace(/\s/g, ''));
+    const sum = money(other.replace(/\s/g, ''));
+    if (amount === null || sum === null || sum < 100) return false;
+    min = Math.min(amount, sum);
+    max = Math.max(amount, sum);
     return true;
   });
-  take(new RegExp(`\\b(?:under|below|less than|max|maximum|upto|up to|chini ya|<)\\s*${N}`, 'g'), (a) => {
-    const v = money(a.replace(/\s/g, ''));
-    if (v === null) return false;
-    max = v;
+  take(new RegExp(`\\b(?:under|below|less than|max|maximum|upto|up to|chini ya|<)\\s*${input}`, 'g'), (value) => {
+    const amount = money(value.replace(/\s/g, ''));
+    if (amount === null) return false;
+    max = amount;
     return true;
   });
-  take(new RegExp(`\\b(?:above|over|more than|min|minimum|from|juu ya|>)\\s*${N}`, 'g'), (a) => {
-    const v = money(a.replace(/\s/g, ''));
-    if (v === null) return false;
-    min = v;
+  take(new RegExp(`\\b(?:above|over|more than|min|minimum|from|juu ya|>)\\s*${input}`, 'g'), (value) => {
+    const amount = money(value.replace(/\s/g, ''));
+    if (amount === null) return false;
+    min = amount;
     return true;
   });
   return { text: text.replace(/\s+/g, ' ').trim(), min, max };
 }
 
 // Which category / sub-category the words point at (used to suggest, and to rank)
-function detectCategory(q) {
-  const n = ` ${normalize(q)} `;
+function detectCategory(query) {
+  const text = ` ${normalize(query)} `;
   // score = total length of the matching names/synonyms, so "soda crate" beats "crate" alone
-  const score = (words) => words.reduce((sum, w) => {
-    const t = normalize(w);
-    return t && n.includes(` ${t} `) ? sum + t.length : sum;
+  const score = (words) => words.reduce((sum, word) => {
+    const normalizeResult = normalize(word);
+    return normalizeResult && text.includes(` ${normalizeResult} `) ? sum + normalizeResult.length : sum;
   }, 0);
   let best = null;
-  for (const c of CATEGORIES) {
-    const cs = score([c.name, ...(c.synonyms || [])]);
-    for (const s of c.subs) {
-      const ss = score([s.name, ...(s.synonyms || [])]);
-      if (ss && (!best || ss + cs > best.score)) best = { category: c.slug, sub: s.slug, score: ss + cs };
+  for (const category of CATEGORIES) {
+    const cs = score([category.name, ...(category.synonyms || [])]);
+    for (const sub of category.subs) {
+      const ss = score([sub.name, ...(sub.synonyms || [])]);
+      if (ss && (!best || ss + cs > best.score)) best = { category: category.slug, sub: sub.slug, score: ss + cs };
     }
-    if (cs && (!best || cs > best.score)) best = { category: c.slug, sub: null, score: cs };
+    if (cs && (!best || cs > best.score)) best = { category: category.slug, sub: null, score: cs };
   }
   return best && { category: best.category, sub: best.sub };
 }
 
 // Mongo conditions for the words: every word must match the start of one of the ad's keywords
-function wordFilter(q, mode = 'all') {
-  const words = [...new Set(tokens(q))].slice(0, 8);
+function wordFilter(query, mode = 'all') {
+  const words = [...new Set(tokens(query))].slice(0, 8);
   if (!words.length) return { filter: {}, words };
-  const rx = words.map((w) => new RegExp(`^${escapeRx(w)}`));
+  const rx = words.map((word) => new RegExp(`^${escapeRx(word)}`));
   if (mode === 'all') return { filter: { keywords: { $all: rx } }, words };
   // relaxed: any word, with long words cut short to forgive typos ("mattrass" -> "matt")
-  const loose = words.map((w) => new RegExp(`^${escapeRx(w.length >= 6 ? w.slice(0, 4) : w)}`));
+  const loose = words.map((word) => new RegExp(`^${escapeRx(word.length >= 6 ? word.slice(0, 4) : word)}`));
   return { filter: { keywords: { $in: loose } }, words };
 }
 
 // Search-box suggestions: categories, makes & models, counties
-function suggestTerms(q, limit = 8) {
-  const n = normalize(q);
-  if (n.length < 2) return [];
-  const words = n.split(' ');
+function suggestTerms(query, limit = 8) {
+  const normalizeResult = normalize(query);
+  if (normalizeResult.length < 2) return [];
+  const words = normalizeResult.split(' ');
   const out = [];
   const seen = new Set();
-  const push = (s) => {
-    const key = s.type === 'make' || s.type === 'model' ? `${s.type}|${s.label}` : `${s.label}|${s.href}`;
+  const push = (text) => {
+    const key = text.type === 'make' || text.type === 'model' ? `${text.type}|${text.label}` : `${text.label}|${text.href}`;
     if (!seen.has(key)) {
       seen.add(key);
-      out.push(s);
+      out.push(text);
     }
   };
   const starts = (text) => {
-    const t = normalize(text);
-    return words.every((w) => t.split(' ').some((x) => x.startsWith(w)));
+    const currentNormalizeResult = normalize(text);
+    return words.every((word) => currentNormalizeResult.split(' ').some((item) => item.startsWith(word)));
   };
-  for (const c of CATEGORIES) {
-    if (starts(c.name) || (c.synonyms || []).some(starts)) push({ type: 'category', label: c.name, icon: c.icon, href: `/market/${c.slug}` });
-    for (const s of c.subs) {
-      if (starts(s.name) || (s.synonyms || []).some(starts)) push({ type: 'category', label: s.name, hint: c.name, icon: c.icon, href: `/market/${c.slug}/${s.slug}` });
-      const makeField = (s.fields || []).find((f) => f.type === 'make');
+  for (const category of CATEGORIES) {
+    if (starts(category.name) || (category.synonyms || []).some(starts)) push({ type: 'category', label: category.name, icon: category.icon, href: `/market/${category.slug}` });
+    for (const sub of category.subs) {
+      if (starts(sub.name) || (sub.synonyms || []).some(starts)) push({ type: 'category', label: sub.name, hint: category.name, icon: category.icon, href: `/market/${category.slug}/${sub.slug}` });
+      const makeField = (sub.fields || []).find((field) => field.type === 'make');
       if (!makeField || makeField.label.startsWith('Fits')) continue;
       for (const [mk, models] of Object.entries(makeField.makes)) {
         if (mk === 'Other') continue;
-        if (starts(mk)) push({ type: 'make', label: `${mk}`, hint: s.name, icon: c.icon, href: `/market/${c.slug}/${s.slug}?make=${encodeURIComponent(mk)}` });
+        if (starts(mk)) push({ type: 'make', label: `${mk}`, hint: sub.name, icon: category.icon, href: `/market/${category.slug}/${sub.slug}?make=${encodeURIComponent(mk)}` });
         for (const md of models) {
-          if (starts(`${mk} ${md}`) || starts(md)) push({ type: 'model', label: `${mk} ${md}`, hint: s.name, icon: c.icon, href: `/market/${c.slug}/${s.slug}?make=${encodeURIComponent(mk)}&model=${encodeURIComponent(md)}` });
+          if (starts(`${mk} ${md}`) || starts(md)) push({ type: 'model', label: `${mk} ${md}`, hint: sub.name, icon: category.icon, href: `/market/${category.slug}/${sub.slug}?make=${encodeURIComponent(mk)}&model=${encodeURIComponent(md)}` });
           if (out.length >= limit * 3) break;
         }
       }
@@ -161,7 +164,7 @@ function suggestTerms(q, limit = 8) {
   for (const county of COUNTIES) if (starts(county)) push({ type: 'place', label: `Ads in ${county}`, icon: '📍', href: `/market/search?county=${encodeURIComponent(county)}` });
   // exact category names first, then makes, then models
   const order = { category: 0, make: 1, model: 2, place: 3 };
-  return out.sort((a, b) => order[a.type] - order[b.type]).slice(0, limit);
+  return out.sort((first, second) => order[first.type] - order[second.type]).slice(0, limit);
 }
 
 module.exports = { normalize, tokens, keywordsFor, wordFilter, parsePrice, detectCategory, suggestTerms, stem };

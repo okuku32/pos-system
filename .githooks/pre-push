@@ -1,0 +1,3 @@
+#!/bin/sh
+# Last check before anything reaches GitHub: every commit being pushed is scanned for secrets.
+exec node "$(git rev-parse --show-toplevel)/scripts/check-secrets.js" --push

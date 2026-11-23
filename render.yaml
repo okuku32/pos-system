@@ -1,0 +1,73 @@
+# Render "Blueprint" for Kapu's server (the API, live updates, background jobs, photos and search-engine pages).
+# The app's files are on Vercel (client/vercel.json), which forwards everything else here. Steps: docs/DEPLOY-VERCEL.md
+#
+# In Render: New → Blueprint → choose this repository. Values marked "sync: false" are asked for once, privately in
+# Render's dashboard (they're never stored in git).
+services:
+  - type: web
+    name: kapu-api
+    runtime: node
+    region: frankfurt # Render's closest region to Kenya
+    plan: starter # an always-on plan: the free plan sleeps and has no persistent disk (photos would be lost)
+    # the server, and the app's build (the server uses it to answer page requests with search-engine previews).
+    # --include=dev: the app's build tools are dev dependencies, and NODE_ENV=production would otherwise skip them.
+    buildCommand: npm ci --prefix server && npm ci --include=dev --prefix client && npm run build --prefix client
+    startCommand: npm start --prefix server
+    healthCheckPath: /api/health
+    # photos and private files (riders' documents, shopping-list photos): kept across deploys and restarts
+    disk:
+      name: kapu-data
+      mountPath: /var/data
+      sizeGB: 5
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "22"
+      - key: SERVE_CLIENT
+        value: "true"
+      - key: DATA_DIR
+        value: /var/data
+      # visitors reach us through Vercel, then Render's own proxy: two proxies (for real visitor IPs)
+      - key: TRUST_PROXY_HOPS
+        value: "2"
+      # the database: your MongoDB Atlas connection string (mongodb+srv://user:password@…)
+      - key: MONGO_URI
+        sync: false
+      # the site's public address on Vercel, e.g. https://kapu.vercel.app or https://kapu.co.ke (all three the same)
+      - key: SHOP_URL
+        sync: false
+      - key: CLIENT_URL
+        sync: false
+      - key: PUBLIC_API_URL
+        sync: false
+      # secrets: Render makes long random values for these
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MPESA_CALLBACK_SECRET
+        generateValue: true
+      # 64 hex characters: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+      - key: PAY_SECRETS_KEY
+        sync: false
+      # email (verification and password-reset emails)
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      # M-Pesa (leave empty until you have live keys; demo payments work until then)
+      - key: MPESA_ENV
+        sync: false
+      - key: MPESA_CONSUMER_KEY
+        sync: false
+      - key: MPESA_CONSUMER_SECRET
+        sync: false
+      - key: MPESA_SHORTCODE
+        sync: false
+      - key: MPESA_PASSKEY
+        sync: false

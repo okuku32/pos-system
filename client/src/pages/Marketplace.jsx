@@ -3,9 +3,9 @@ import toast from 'react-hot-toast';
 import api, { errMsg, money } from '../api';
 
 // Staff moderation for the public marketplace: review reported ads, take ads down or put them back, delete.
-const ago = (d) => {
-  const h = Math.round((Date.now() - new Date(d)) / 3600000);
-  return h < 1 ? 'just now' : h < 24 ? `${h} h ago` : `${Math.round(h / 24)} d ago`;
+const ago = (date) => {
+  const amount = Math.round((Date.now() - new Date(date)) / 3600000);
+  return amount < 1 ? 'just now' : amount < 24 ? `${amount} h ago` : `${Math.round(amount / 24)} d ago`;
 };
 
 export default function Marketplace() {
@@ -16,13 +16,13 @@ export default function Marketplace() {
   const load = useCallback(() => {
     api
       .get('/market/admin/listings', { params: { ...filter, page } })
-      .then((r) => setRes(r.data))
-      .catch((e) => toast.error(errMsg(e)));
+      .then((response) => setRes(response.data))
+      .catch((error) => toast.error(errMsg(error)));
   }, [filter, page]);
 
   useEffect(() => {
-    const t = setTimeout(load, 200);
-    return () => clearTimeout(t);
+    const timer = setTimeout(load, 200);
+    return () => clearTimeout(timer);
   }, [load]);
 
   const act = async (ad, body, msg) => {
@@ -30,8 +30,8 @@ export default function Marketplace() {
       await api.patch(`/market/admin/listings/${ad._id}`, body);
       toast.success(msg);
       load();
-    } catch (e) {
-      toast.error(errMsg(e));
+    } catch (error) {
+      toast.error(errMsg(error));
     }
   };
   const takeDown = (ad) => {
@@ -44,23 +44,23 @@ export default function Marketplace() {
       await api.delete(`/market/admin/listings/${ad._id}`);
       toast.success('Deleted');
       load();
-    } catch (e) {
-      toast.error(errMsg(e));
+    } catch (error) {
+      toast.error(errMsg(error));
     }
   };
-  const set = (k, v) => {
+  const set = (key, value) => {
     setPage(1);
-    setFilter((f) => ({ ...f, [k]: v }));
+    setFilter((previousFilter) => ({ ...previousFilter, [key]: value }));
   };
 
-  const s = res?.stats || {};
+  const stats = res?.stats || {};
   return (
     <div>
       <div className="page-head">
         <h2>Marketplace</h2>
         <div className="toolbar">
-          <input placeholder="Search ads…" value={filter.q} onChange={(e) => set('q', e.target.value)} />
-          <select value={filter.status} onChange={(e) => set('status', e.target.value)} style={{ width: 'auto' }}>
+          <input placeholder="Search ads…" value={filter.q} onChange={(event) => set('q', event.target.value)} />
+          <select value={filter.status} onChange={(event) => set('status', event.target.value)} style={{ width: 'auto' }}>
             <option value="">All statuses</option>
             <option value="active">Live</option>
             <option value="sold">Sold</option>
@@ -71,14 +71,14 @@ export default function Marketplace() {
       </div>
 
       <div className="stats" style={{ marginBottom: 14 }}>
-        <button className={`card stat stat-link ${s.reported ? 'stat-bad' : ''}`} onClick={() => set('reported', filter.reported ? '' : '1')}>
-          <span className="muted">🚩 Reported ads to review</span><b>{s.reported ?? '–'}</b>
+        <button className={`card stat stat-link ${stats.reported ? 'stat-bad' : ''}`} onClick={() => set('reported', filter.reported ? '' : '1')}>
+          <span className="muted">🚩 Reported ads to review</span><b>{stats.reported ?? '–'}</b>
           <small className="muted">{filter.reported ? 'Showing reported only. Click to show all' : 'Click to show only these'}</small>
         </button>
-        <div className="card stat"><span className="muted">Live ads</span><b>{s.active ?? '–'}</b></div>
-        <div className="card stat"><span className="muted">Sold</span><b>{s.sold ?? 0}</b></div>
-        <div className="card stat"><span className="muted">Sellers</span><b>{s.sellers ?? '–'}</b></div>
-        <div className="card stat"><span className="muted">Buyer–seller chats</span><b>{s.chats ?? '–'}</b></div>
+        <div className="card stat"><span className="muted">Live ads</span><b>{stats.active ?? '–'}</b></div>
+        <div className="card stat"><span className="muted">Sold</span><b>{stats.sold ?? 0}</b></div>
+        <div className="card stat"><span className="muted">Sellers</span><b>{stats.sellers ?? '–'}</b></div>
+        <div className="card stat"><span className="muted">Buyer–seller chats</span><b>{stats.chats ?? '–'}</b></div>
       </div>
 
       <div className="card table-wrap">
@@ -94,7 +94,7 @@ export default function Marketplace() {
                   <div className="muted" style={{ fontSize: 12 }}>📍 {[ad.area, ad.county].filter(Boolean).join(', ')} · {ago(ad.createdAt)}</div>
                   {ad.reportCount > 0 && (
                     <div className="error-text" style={{ fontSize: 12 }}>
-                      🚩 {ad.reportCount} report{ad.reportCount > 1 ? 's' : ''}: {ad.reports.map((r) => r.reason).join(' · ')}
+                      🚩 {ad.reportCount} report{ad.reportCount > 1 ? 's' : ''}: {ad.reports.map((report) => report.reason).join(' · ')}
                     </div>
                   )}
                   {ad.status === 'hidden' && ad.hiddenReason && <div className="muted" style={{ fontSize: 12 }}>Reason: {ad.hiddenReason}</div>}

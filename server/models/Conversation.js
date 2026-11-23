@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { tenantModel } = require('../tenancy/context');
 
 // A private chat between a buyer and a seller about one ad
 const conversationSchema = new mongoose.Schema(
@@ -18,6 +17,8 @@ const conversationSchema = new mongoose.Schema(
     lastMessage: { text: String, from: mongoose.Schema.Types.ObjectId, at: Date },
     unreadBuyer: { type: Number, default: 0 },
     unreadSeller: { type: Number, default: 0 },
+    sellerRepliedAt: Date, // the seller's first reply (for their response rate and time)
+    flagged: { type: Number, default: 0 }, // messages that looked like a payment scam
   },
   { timestamps: true }
 );
@@ -25,5 +26,6 @@ const conversationSchema = new mongoose.Schema(
 conversationSchema.index({ listing: 1, buyer: 1 }, { unique: true });
 conversationSchema.index({ buyer: 1, updatedAt: -1 });
 conversationSchema.index({ seller: 1, updatedAt: -1 });
+conversationSchema.index({ seller: 1, createdAt: -1 }); // seller response stats
 
-module.exports = tenantModel('Conversation', conversationSchema);
+module.exports = mongoose.model('Conversation', conversationSchema);

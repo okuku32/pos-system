@@ -38,45 +38,32 @@ function getTransporter() {
   return transporterPromise;
 }
 
-// A client can use their own SMTP account (Settings → Email); otherwise the platform's account is used.
-const clientTransports = new Map();
-function clientTransport(e) {
-  if (!e?.smtpHost) return null;
-  const key = `${e.smtpHost}:${e.smtpPort}:${e.smtpUser}`;
-  if (!clientTransports.has(key)) {
-    const port = Number(e.smtpPort || 587);
-    clientTransports.set(key, nodemailer.createTransport({ host: e.smtpHost, port, secure: port === 465, auth: e.smtpUser ? { user: e.smtpUser, pass: e.smtpPass } : undefined }));
-  }
-  return clientTransports.get(key);
-}
-
 function senderFor() {
+  let name = 'Kapu';
   try {
-    const { settings, DEFAULT_SLUG } = require('../tenancy/tenants');
-    const s = settings();
-    // the original shop keeps using MAIL_FROM exactly as configured in .env
-    if (s.slug === DEFAULT_SLUG() && process.env.MAIL_FROM && !s.email.smtpHost) return { from: process.env.MAIL_FROM, transport: null };
-    return { from: s.email.from, transport: clientTransport(s.email) };
+    name = require('../config/site').site().name;
   } catch {
-    return { from: process.env.MAIL_FROM || 'Ordersasa <no-reply@ordersasa.co.ke>', transport: null }; // no client context
+    /* settings not loaded yet */
   }
+  const address = (process.env.MAIL_FROM || 'no-reply@kapu.co.ke').replace(/^.*<|>.*$/g, '').trim();
+  return { from: `${name} <${address}>`, transport: null };
 }
 
 // Mail providers like Gmail only send "from" the account you log in with. When the configured sender is a
 // different address, send from the login address but keep the shop's name, and let replies go to the
-// configured address: customers see "Ordersasa <you@gmail.com>".
-const emailOf = (s = '') => (String(s).match(/<([^>]+)>/)?.[1] || String(s)).trim().toLowerCase();
-const nameOf = (s = '') => (String(s).match(/^\s*"?([^"<]+?)"?\s*</)?.[1] || '').trim();
+// configured address: customers see "Kapu <you@gmail.com>".
+const emailOf = (text = '') => (String(text).match(/<([^>]+)>/)?.[1] || String(text)).trim().toLowerCase();
+const nameOf = (text = '') => (String(text).match(/^\s*"?([^"<]+?)"?\s*</)?.[1] || '').trim();
 function fromHeaders(sender) {
   const login = sender.transport ? '' : String(process.env.SMTP_USER || '').trim();
   if (!login.includes('@') || emailOf(sender.from) === login.toLowerCase()) return { from: sender.from };
-  const name = nameOf(sender.from) || 'Ordersasa';
+  const name = nameOf(sender.from) || 'Kapu';
   const replyTo = emailOf(sender.from);
   return { from: `"${name.replace(/"/g, '')}" <${login}>`, ...(replyTo.includes('@') && !/no-?reply/.test(replyTo) ? { replyTo } : {}) };
 }
 
 // Never throws: an email problem must never break an order or a payment.
-async function sendMail({ to, subject, html, text }) {
+async function sendMailNow({ to, subject, html, text }) {
   if (!to) return { sent: false, reason: 'no recipient' };
   try {
     const sender = senderFor();
@@ -100,4 +87,22 @@ async function sendMail({ to, subject, html, text }) {
 
 const emailMode = () => (process.env.SMTP_HOST ? 'smtp' : process.env.NODE_ENV === 'production' ? 'disabled' : 'ethereal');
 
-module.exports = { sendMail, emailMode };
+// queued: the request doesn't wait for the mail server, and a failed send is retried (utils/jobs.js)
+function sendMail(message) {
+  return require('./jobs').enqueue('email', { to: message.to, subject: message.subject, text: message.text, html: message.html, replyTo: message.replyTo })
+    .then(() => ({ queued: true }))
+    .catch((error) => {
+      console.error('[email] could not queue, sending now:', error.message);
+      return sendMailNow(message);
+    });
+}
+// the background worker sends them (a failure throws, so the job is retried)
+function startMailWorker() {
+  require('./jobs').handle('email', async (message) => {
+    const info = await sendMailNow(message);
+    // retried only for a real failure (mail server down…), not when email is switched off
+    if (!info.sent && !/^email |no recipient/.test(info.reason || '')) throw new Error(info.reason || 'not sent');
+  });
+}
+
+module.exports = { emailMode, sendMail, sendMailNow, startMailWorker };

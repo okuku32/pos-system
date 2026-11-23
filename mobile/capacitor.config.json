@@ -1,0 +1,20 @@
+{
+  "appId": "com.ordersasa.app",
+  "appName": "Kapu",
+  "webDir": "www",
+  "server": {
+    "url": "https://evolve-impurity-rinse.ngrok-free.dev",
+    "cleartext": false,
+    "androidScheme": "https",
+    "allowNavigation": ["evolve-impurity-rinse.ngrok-free.dev"]
+  },
+  "android": {
+    "allowMixedContent": false,
+    "backgroundColor": "#faf8f5"
+  },
+  "ios": {
+    "contentInset": "automatic",
+    "backgroundColor": "#faf8f5",
+    "limitsNavigationsToAppBoundDomains": false
+  }
+}

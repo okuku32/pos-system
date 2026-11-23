@@ -4,3 +4,6 @@ uploads/*
 !uploads/products/
 uploads/products/*
 !uploads/products/.gitkeep
+
+# private files: riders’ documents and buyers’ request photos (never in git)
+private/

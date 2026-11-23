@@ -1,0 +1,209 @@
+# Deploy Kapu: the app on Vercel, the server on Render, the database on MongoDB Atlas
+
+## Why three services?
+
+Vercel runs websites and short-lived functions. Kapu's server needs things Vercel can't give it:
+
+| The server needs | Vercel | Render |
+|---|---|---|
+| To stay running (live chat, rider tracking, order alerts over Socket.IO) | ❌ functions stop after each request | ✅ |
+| A disk that keeps files (ad photos, riders' documents) | ❌ files vanish | ✅ persistent disk |
+| Background jobs (emails, payouts, cleanups) | ❌ | ✅ |
+
+So the work is split:
+
+```
+ buyers, sellers, staff ──► https://your-site (Vercel)
+                              │  app files (JS, CSS, fonts, icons): served from Vercel's worldwide CDN
+                              │  everything else (/api, photos, pages, live updates): forwarded ──►  Render (the server)
+                              │                                                                      │
+                              └──────────────────────────────────────────────────────────────────►  MongoDB Atlas (the data)
+```
+
+Because Vercel forwards everything to the server under your one address, logins (cookies), security checks, M-Pesa
+callbacks, link previews on WhatsApp and Google listings all work exactly as on your computer.
+
+**Costs (check each site for current prices):**
+- **Vercel:** the free *Hobby* plan is for personal, non-commercial projects. A business like Kapu needs the *Pro* plan.
+- **Render:** an always-on *Starter* instance, plus a small persistent disk. The free plan sleeps and has no disk, so photos would be lost.
+- **MongoDB Atlas:** the free *M0* cluster (512 MB) is enough to start. Upgrade as you grow.
+
+The project already contains the settings these services read:
+
+| File | For | What it does |
+|---|---|---|
+| `render.yaml` | Render | Describes the server: build, start, health check, disk, settings |
+| `client/vercel.json` | Vercel | Builds the app and forwards everything else to Render |
+
+---
+
+## Step 1: put your latest code on GitHub
+
+Render and Vercel deploy from GitHub. In the project folder:
+
+```powershell
+npm run check:security          # everything must pass first
+git add -A
+git commit -m "Prepare deployment: Vercel + Render"
+git push origin multi-tenant
+```
+
+The pre-commit hook blocks `.env` files and secrets, so they never reach GitHub. That's intended: you type your
+secrets into Render instead (Step 3).
+
+---
+
+## Step 2: create the database (MongoDB Atlas)
+
+1. Go to **cloud.mongodb.com** and sign up. Then **Create** a cluster: choose **M0 (free)** and the provider/region
+   **AWS · Frankfurt (eu-central-1)**, next to the Render server.
+2. **Database Access → Add New Database User**:
+   - **Username:** e.g. `kapu`.
+   - **Password:** click **Autogenerate Secure Password** and copy it.
+   - **Role:** *Read and write to any database*.
+3. **Network Access → Add IP Address → Allow access from anywhere** (`0.0.0.0/0`). Render's addresses change, and the
+   long random password protects the database.
+4. **Database → Connect → Drivers** and copy the connection string. Replace `<your password>` (including the < >) with the password from step 2, and add the database
+   name `kapu` before the `?`:
+   ```
+   mongodb+srv://kapu:<your password>@cluster0.xxxxx.mongodb.net/kapu?retryWrites=true&w=majority
+   ```
+   This is your **MONGO_URI**. Keep it private.
+
+**Optional: copy your local data up.** Install *MongoDB Database Tools*, then:
+```powershell
+mongodump --uri "mongodb://127.0.0.1:27017/pos_system" --out backup
+mongorestore --uri "mongodb+srv://kapu:<your password>@cluster0.xxxxx.mongodb.net" --nsFrom "pos_system.*" --nsTo "kapu.*" backup
+```
+Copy the photos too: after Step 3, upload the contents of `server\uploads` to the server's disk (`/var/data/uploads`)
+with Render's **Shell**, or re-post the ads.
+
+---
+
+## Step 3: deploy the server (Render)
+
+1. Go to **render.com**, sign up with GitHub, and allow access to the `pos-system` repository.
+2. **New + → Blueprint →** choose `pos-system`, branch `multi-tenant`. Render reads `render.yaml` and shows the
+   service **kapu-api** with a 5 GB disk.
+3. Render asks for the private values (they're stored by Render, never in git):
+
+   | Setting | What to type |
+   |---|---|
+   | `MONGO_URI` | The connection string from Step 2 |
+   | `SHOP_URL`, `CLIENT_URL`, `PUBLIC_API_URL` | Your Vercel address, all three the same. Pick your Vercel project name now: `https://kapu-marketplace.vercel.app` (no `/` at the end). You can change it in Step 5 |
+   | `PAY_SECRETS_KEY` | 64 hex characters. On your computer run `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` and paste the result |
+   | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | Your email provider's settings (the same as in your local `server\.env`) |
+   | `MPESA_*` | Leave empty until you have live M-Pesa keys. Demo payments work until then |
+
+   `JWT_SECRET` and `MPESA_CALLBACK_SECRET` are generated by Render: leave them.
+4. Click **Apply**. The first build takes a few minutes; follow it in **Logs**.
+5. When it says **Live**, open `https://kapu-api.onrender.com/api/health` (your service's address is at the top of its
+   page). It should answer `{"ok":true}`. Copy that address: **it's your Render address**.
+
+> The server refuses to start in production with unsafe settings and prints why in the Logs. For example, a short
+> `JWT_SECRET` or a `PAY_SECRETS_KEY` that isn't 64 hex characters.
+
+---
+
+## Step 4: connect the app to the server
+
+Open `client\vercel.json` and replace the placeholder with your Render address:
+
+```json
+"destination": "https://kapu-api.onrender.com/:path*"
+```
+
+Save, then:
+```powershell
+git add client/vercel.json
+git commit -m "Point Vercel to the Render server"
+git push origin multi-tenant
+```
+
+---
+
+## Step 5: deploy the app (Vercel)
+
+1. Go to **vercel.com**, sign up with GitHub, then **Add New… → Project →** import `pos-system`.
+2. Set **Root Directory** to **`client`** (important). Vercel detects *Vite* and uses the build settings from
+   `vercel.json`. Leave the other settings as they are.
+3. **Environment Variables:** add **none**. The app must *not* have `VITE_API_URL` on the web: it talks to the server
+   through the same address.
+4. Set the **Project Name** you chose in Step 3 (e.g. `kapu-marketplace`), choose the branch `multi-tenant` under
+   *Git* if asked, and click **Deploy**.
+5. When it finishes, open `https://kapu-marketplace.vercel.app`. The welcome page should appear.
+6. If Vercel gave a different address than the one you typed in Step 3: in Render → **kapu-api → Environment**, set
+   `SHOP_URL`, `CLIENT_URL` and `PUBLIC_API_URL` to the real address, **Save**. Render redeploys by itself.
+
+---
+
+## Step 6: create the owner account
+
+1. In Render → **kapu-api → Shell**, run:
+   ```bash
+   cd server && node utils/staffLink.js
+   ```
+   It prints your private staff link, e.g. `https://kapu-marketplace.vercel.app/staff/nhm_GxS4…`.
+2. Open it. On a new database it says **Create owner account**: enter your name, email and a strong password.
+   If you copied your local data, sign in with your existing account instead (the first admin is the owner).
+3. Add your admins and moderators under **Team** (see `docs/LAUNCH-AND-TEST-GUIDE.md`).
+
+---
+
+## Step 7: check the live site (10 minutes)
+
+- [ ] Sign up as a buyer: the verification email arrives, and the login stays after a page refresh
+- [ ] Post an ad with photos, then redeploy on Render (**Manual Deploy**): the photos are still there (the disk works)
+- [ ] Open an ad on two devices and chat: messages arrive live
+- [ ] Share an ad's link on WhatsApp: the preview shows the photo, title and price
+- [ ] `https://your-site/sitemap.xml` lists addresses on **your site**, not on onrender.com
+- [ ] **Ride with us**: prices appear for a Nairobi trip
+- [ ] Staff: the owner, an admin and a moderator each see their own panel
+- [ ] Optional: check the security headers at **securityheaders.com** with your site's address
+
+---
+
+## Step 8 (when you're ready): your own domain, M-Pesa, the Android app
+
+**Your domain (e.g. kapu.co.ke):**
+1. Vercel → Project → **Settings → Domains → Add** `kapu.co.ke` (and `www.kapu.co.ke`). Vercel shows the DNS records
+   to add at your domain registrar.
+2. Once Vercel shows it as valid, set `SHOP_URL`, `CLIENT_URL` and `PUBLIC_API_URL` in Render to `https://kapu.co.ke`
+   and save.
+3. Create a new staff link (`node utils/staffLink.js --new` in Render's Shell), because the old one shows the old address.
+
+**M-Pesa:** add your live keys in Render (`MPESA_ENV=production`, `MPESA_CONSUMER_KEY`, `MPESA_CONSUMER_SECRET`,
+`MPESA_SHORTCODE`, `MPESA_PASSKEY`). The callback address is built from `PUBLIC_API_URL` automatically. Demo payments switch
+off by themselves.
+
+**Android app:** in `client\.env.android` set `VITE_API_URL=https://kapu.co.ke/api`, then run
+`npm run build:android --prefix client` and build the release in Android Studio.
+
+---
+
+## Updating the live site
+
+Push to GitHub: Vercel and Render both deploy the new version automatically.
+
+```powershell
+npm run check:security
+git add -A; git commit -m "What changed"; git push origin multi-tenant
+```
+
+Deploy both from the **same branch**, so the app and the server are the same version. If one finishes first, nothing
+breaks: any app file Vercel doesn't have yet is fetched from the server.
+
+---
+
+## When something goes wrong
+
+| What you see | Why | Fix |
+|---|---|---|
+| Render build: `vite: not found` | The build tools weren't installed | `render.yaml` already installs them (`--include=dev`); check you deployed the latest commit |
+| Render Logs: *Refusing to start in production with unsafe settings* | A secret is missing or weak | The lines above it say which; fix it in Render → Environment |
+| Render Logs: `MongoServerSelectionError` / timeout | Atlas blocks the server | Atlas → Network Access → allow `0.0.0.0/0`; check the password in `MONGO_URI` |
+| Vercel shows *404* or *DEPLOYMENT_NOT_FOUND* on pages | `vercel.json` still has the placeholder, or Root Directory isn't `client` | Step 4 and Step 5.2 |
+| You sign in but you're signed out on refresh, or you get *Request blocked* | The site address in Render doesn't match the address in the browser | Make `SHOP_URL`/`CLIENT_URL`/`PUBLIC_API_URL` exactly the browser's address (https, no `/` at the end) |
+| Photos disappear after a deploy | The disk isn't attached | Render → kapu-api → **Disks**: mounted at `/var/data`, and `DATA_DIR=/var/data` |
+| Live updates arrive a few seconds late | Vercel doesn't pass WebSockets, so the app uses regular requests instead | Expected; for instant updates later, put the server on its own subdomain (e.g. `api.kapu.co.ke`) |
+| *Too many attempts* for everyone at once | The server sees Vercel's address instead of each visitor's | Check `TRUST_PROXY_HOPS=2` in Render |

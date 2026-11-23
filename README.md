@@ -1,93 +1,92 @@
-# Ordersasa: MERN POS & online shop
+# Kapu: buy and sell anything in Kenya
 
-A point-of-sale system and customer-facing online shop for a Kenyan retail store, built with **MongoDB, Express, React (Vite) and Node.js**. It takes payments by **M-Pesa (Daraja STK Push)** or cash, reports sales to **KRA eTIMS**, and keeps staff and customers updated in real time.
+A marketplace that connects buyers and sellers, in the style of Jiji and Jumia, built with **MongoDB, Express, React (Vite) and Node.js**.
+
+Anyone can post ads for free: vehicles, land, electronics, furniture, clothes, baby items and more. Buyers can:
+
+- **chat with or call the seller** (Jiji-style), or
+- **buy online** (Jumia-style) for items the seller lists with stock, paying with **M-Pesa** or **cash on delivery**.
+
+**Runs everywhere from one React front end:** desktop web, mobile web, installable PWA and a native Android app (Capacitor). Several API servers can run behind a load balancer (Redis). See [docs/PLATFORMS-AND-SCALING.md](docs/PLATFORMS-AND-SCALING.md) for the architecture, the Android build, scaling, security and performance.
 
 ## Features
 
-**Point of sale (staff)**
-- Product grid with categories, search and barcode scanning; cash and M-Pesa checkout with printable receipts
-- Product discounts (crossed-out prices, "customer saves" on receipts) and an optional extra discount
-- "Today" bar with total sales, transactions, discounts and (admins only) profit, updated live across tills
-- Customer orders: save now, pay later; pickup and delivery with live stages (accepted, preparing, ready / out for delivery)
-- Real-time alerts for new online orders and support messages (sound, pop-up, desktop notification)
-- Customer support inbox with quick replies
-- Reports: revenue, cost, profit and margin; breakdowns by product, category, cashier, payment and day; stock remaining after sales, including units held in open orders; CSV export
-- Roles: admin and cashier (cashiers never see cost prices or profit)
+**Buyers**
+- Search that forgives partial words, plurals, Swahili words (gari, shamba, simu, nguo) and price phrases ("plot under 1m"), with instant suggestions.
+- 20 categories and 145 types, with filters that match each one: make → model for vehicles, size and title deed for land, storage for phones, and so on.
+- In-app chat with sellers, live, with an unread badge and an email to the seller about each new conversation.
+- Cart and checkout for "Buy online" items:
+  - one M-Pesa prompt for the whole cart, or cash on delivery
+  - delivery or pickup
+  - live order tracking and email updates
+- On phones, an app-style bottom bar (Home, Categories, Sell, Chats, Account), a back-to-top button and a full link footer.
 
-**Online shop (customers)**
-- Browse products with pictures, discounts and live stock; slide-in cart
-- Sign up / log in with email and password **or Google (OAuth)**
-- Place pickup or delivery orders and track them live, with timeline and delivery ETA countdown
-- Email notifications: order received, dispatched / ready for pickup, payment received, cancelled
-- Support chat that works without an account; Help page with the shop location (Imara Mall, Mombasa Road, Nairobi)
+**Sellers**
+- Post an ad in about 2 minutes, with up to 8 photos (shrunk on the phone before upload).
+- Optional "Sell online" with quantity in stock, delivery fee and pickup.
+- "Orders to fulfil": confirm, ship (with rider details) and mark delivered. Shows earnings and payouts.
+- A public seller page and "My ads" for editing, marking sold and deleting.
 
-**Integrations**
-- **M-Pesa Daraja:** STK Push with callback plus status polling (works even without a public callback URL)
-- **KRA eTIMS (OSCU):** each sale sent as a tax invoice with per-product VAT type; KRA signature and verification QR code on the receipt; automatic retries; test mode for development
-- **Email:** any SMTP provider (Gmail, Zoho, Brevo…); free Ethereal test inbox in development
-- **Google sign-in:** Google Identity Services, verified on the server
+**Marketplace team (`/admin`)**
+- Dashboard with a "needs attention" list (reported ads, refunds, payouts, support chats).
+- Ad moderation: take down, restore or delete; reported ads come first.
+- Orders and payouts:
+  - M-Pesa money is held until delivery, then paid to the seller minus the commission
+  - refunds are recorded for cancelled paid orders
+  - CSV export
+- Support inbox, team accounts (admin or moderator), and site settings (name, contacts, commission %).
 
-## Tech stack
-React 19 + Vite · Express 5 · MongoDB + Mongoose · Socket.IO · Nodemailer · google-auth-library · axios
+**SEO**
+- The server sends real HTML for every ad, category and make/model page, with:
+  - title, description and canonical link
+  - Open Graph tags for previews on WhatsApp and Facebook
+  - Product, Car and Breadcrumb structured data
+- `/sitemap.xml` updates automatically and `/robots.txt` is included.
 
 ## Getting started
 
-Requirements: **Node.js 18+** and **MongoDB** (local install or MongoDB Atlas).
+Requirements: **Node.js 18+** and **MongoDB**.
 
 ```bash
-git clone <this-repo-url>
-cd Pos-system
-npm run install-all                 # installs root, server and client dependencies
-cp server/.env.example server/.env  # then edit server/.env
-cp client/.env.example client/.env
-npm run seed                        # optional: demo products + admin/cashier users
-npm run dev                         # API on :5000, app on http://localhost:5173
+npm run install-all                          # root, server and client dependencies
+cp server/.env.example server/.env           # then fill it in
+npm run seed --prefix server                 # first admin: admin@pos.com / admin123
+npm run seed:market --prefix server          # optional: ~100 demo ads from 6 demo sellers
+npm run dev                                  # API on :5000, website on http://localhost:5173
 ```
 
-Demo logins after seeding: `admin@pos.com` / `admin123` and `cashier@pos.com` / `cashier123`. **Change these before real use.**
+- Marketplace: http://localhost:5173
+- Admin: http://localhost:5173/admin
+- Demo sellers log in with `wanjiku@demo.kapu.test` (also brian, amina, kevin, faith and moses), password `demo1234`.
+- Remove the demo data with `npm run seed:market --prefix server -- --remove`.
 
-- Staff POS: http://localhost:5173
-- Customer shop: http://localhost:5173/shop
+## Configuration
 
-## Configuration (`server/.env`)
+Everything is in `server/.env`; see `server/.env.example`. The marketplace name, contacts and commission are edited in **Admin → Settings**.
 
-| Setting | Purpose |
-|---|---|
-| `MONGO_URI`, `JWT_SECRET` | Database connection and login token secret (use a long random string) |
-| `MPESA_*` | Daraja keys. `MPESA_CALLBACK_URL` must be a public HTTPS URL (e.g. via ngrok) |
-| `SHOP_URL`, `MAIL_FROM`, `SMTP_*` | Customer emails. Leave `SMTP_HOST` empty to use an Ethereal test inbox |
-| `GOOGLE_CLIENT_ID` | Google sign-in (OAuth client ID, type "Web application"). Leave empty to hide the button |
-| `ETIMS_MODE` (`off`, `mock`, `sandbox`, `live`), `ETIMS_TIN`, `ETIMS_BHF_ID`, `ETIMS_DEVICE_SERIAL` | KRA eTIMS. In `mock` mode, receipts are marked as test invoices |
-
-Shop location and contact details shown to customers are in `client/src/shop/storeInfo.js`.
-
-### M-Pesa callbacks in development
-```bash
-ngrok http 5000
-# then set MPESA_CALLBACK_URL=https://<your-domain>.ngrok-free.app/api/mpesa/callback
-```
-
-### Going live with eTIMS
-Register for eTIMS (OSCU) with KRA, fill in your sandbox PIN, branch ID and device serial, set `ETIMS_MODE=sandbox`, restart, then use **Settings → KRA eTIMS → Initialise device** and make test sales. Switch to `ETIMS_MODE=live` once KRA approves. The integration follows KRA's published OSCU API; confirm field codes against KRA's current specification.
+M-Pesa results arrive at `PUBLIC_API_URL/api/mpesa/callback`. While developing on a laptop without a public address, the checkout also asks Safaricom for the payment status directly, so payments still complete.
 
 ## Production
+
 ```bash
-npm run build                 # builds client/dist
-# set NODE_ENV=production in server/.env
-npm start                     # Express serves the API and the built React app
+npm run build      # builds client/dist
+npm start          # with NODE_ENV=production: the server serves the site, SEO pages, sitemap and API
 ```
+
+After you go live on your own domain, add it to **Google Search Console** and submit `https://your-domain/sitemap.xml`.
 
 ## Project structure
+
 ```
-client/            React app (Vite)
-  src/pages/       Staff POS screens
-  src/shop/        Customer shop (Ordersasa)
-server/            Express API
-  models/          Mongoose models
-  controllers/     Route handlers
-  utils/           M-Pesa, eTIMS, email, pricing, real-time
+server/
+  config/        database and site settings
+  controllers/   market (ads, search, chat), orders (checkout, M-Pesa, payouts), customers, admin, support
+  market/        categories.js (categories and their details), search.js, seo.js (server-rendered pages and sitemap)
+  models/        Listing, Order, Conversation, ChatMessage, Customer, User, SupportThread, SiteSettings
+client/src/
+  market/        home, browse, ad page, sell, cart, checkout, orders, messages, account
+  shop/          site frame (header, footer, bottom bar), login and sign-up, help, support chat
+  pages/         admin area
 ```
 
-## Security notes
-- Never commit `server/.env`; it holds your keys. `.gitignore` excludes it, along with `node_modules`, build output and uploaded pictures.
-- Prices, discounts and stock are always decided on the server; customer and staff logins are separate.
+The earlier POS and grocery-shop version is kept in git under the tag `pos-snapshot-2026-11-11`.

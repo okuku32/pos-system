@@ -10,7 +10,7 @@ export default function AdultGate({ onYes }) {
         <h1 id="mk-gate-h">Are you 18 or older?</h1>
         <p>Liquor ads are only for adults aged 18 and above. Sellers must hold a valid liquor licence, and you may be asked for ID on delivery.</p>
         <div className="os-row center">
-          <Link to="/market" className="os-btn os-btn-ghost">No, take me back</Link>
+          <Link to="/" className="os-btn os-btn-ghost">No, take me back</Link>
           <button className="os-btn os-btn-brand" onClick={onYes}>Yes, I’m 18+</button>
         </div>
         <small>Drink responsibly. Not for sale to persons under the age of 18.</small>

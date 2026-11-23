@@ -8,8 +8,8 @@ import { STORE_INFO } from './storeInfo';
 import { openWhatsApp } from './WhatsAppSupport';
 
 // Floating customer support chat. Works without an account: the conversation is remembered in this
-// browser by a secret token. Open it from anywhere with window.dispatchEvent(new Event('ordersasa:chat')).
-const KEY = 'ordersasa_support';
+// browser by a secret token. Open it from anywhere with window.dispatchEvent(new Event('kapu:chat')).
+const KEY = 'kapu_support';
 const TOPICS = [
   ['order', '📦 My order'],
   ['delivery', '🛵 Delivery'],
@@ -17,16 +17,24 @@ const TOPICS = [
   ['product', '🛍️ A product'],
   ['other', '💬 Something else'],
 ];
-const fmt = (d) => new Date(d).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+const fmt = (date) => new Date(date).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 
-export const openSupportChat = () => window.dispatchEvent(new Event('ordersasa:chat'));
+export const openSupportChat = () => window.dispatchEvent(new Event('kapu:chat'));
 
 export default function SupportChat() {
   const { customer, orders } = useShop();
   const location = useLocation();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  const [token, setToken] = useState(() => store.get(KEY, null));
+  // "me": this browser has a conversation; its secret is in an httpOnly cookie the page can't read
+  const [token, setToken] = useState(() => (store.get(KEY, null) === 'me' ? 'me' : null));
+  // pages from before kept the secret itself in localStorage: move it into the cookie once, then forget it
+  useEffect(() => {
+    const old = store.get(KEY, null);
+    if (typeof old === 'string' && /^[a-f0-9]{32}$/.test(old)) {
+      shopApi.post('/support/session', { token: old }).then(() => { store.set(KEY, 'me'); setToken('me'); }).catch(() => store.set(KEY, null));
+    }
+  }, []);
   const [thread, setThread] = useState(null);
   const [form, setForm] = useState({ name: '', contact: '', topic: 'order', orderNo: '', message: '' });
   const [draft, setDraft] = useState('');
@@ -36,25 +44,27 @@ export default function SupportChat() {
   const openRef = useRef(open);
   openRef.current = open;
 
-  // Open from anywhere (Help page buttons) and from email links: /shop/help?chat=<token>
+  // Open from anywhere (Help page buttons) and from email links: /help?chat=<token>
   useEffect(() => {
     const onOpen = () => setOpen(true);
-    window.addEventListener('ordersasa:chat', onOpen);
-    return () => window.removeEventListener('ordersasa:chat', onOpen);
+    window.addEventListener('kapu:chat', onOpen);
+    return () => window.removeEventListener('kapu:chat', onOpen);
   }, []);
   useEffect(() => {
-    const t = new URLSearchParams(location.search).get('chat');
-    if (t && /^[a-f0-9]{32}$/.test(t)) {
-      store.set(KEY, t);
-      setToken(t);
-      setOpen(true);
-      navigate(location.pathname, { replace: true });
+    const value = new URLSearchParams(location.search).get('chat');
+    if (value && /^[a-f0-9]{32}$/.test(value)) {
+      navigate(location.pathname, { replace: true }); // the secret leaves the address bar at once
+      shopApi.post('/support/session', { token: value }).then(() => {
+        store.set(KEY, 'me');
+        setToken('me');
+        setOpen(true);
+      }).catch(() => toast.error('That conversation link is no longer valid'));
     }
   }, [location.search, location.pathname, navigate]);
 
   // Pre-fill from the customer's account
   useEffect(() => {
-    if (customer) setForm((f) => ({ ...f, name: f.name || customer.name, contact: f.contact || customer.email }));
+    if (customer) setForm((previousForm) => ({ ...previousForm, name: previousForm.name || customer.name, contact: previousForm.contact || customer.email }));
   }, [customer]);
 
   const markRead = useCallback(() => {
@@ -69,27 +79,27 @@ export default function SupportChat() {
     if (!token) return undefined;
     shopApi
       .get(`/support/threads/${token}`)
-      .then((r) => {
-        setThread(r.data);
-        setUnread(r.data.unread || 0);
+      .then((response) => {
+        setThread(response.data);
+        setUnread(response.data.unread || 0);
       })
-      .catch((e) => {
-        if (e.response?.status === 404) {
+      .catch((error) => {
+        if (error.response?.status === 404) {
           store.set(KEY, null);
           setToken(null);
           setThread(null);
         }
       });
     const socket = connectSocket({ support: token });
-    socket.on('support:update', (t) => {
+    socket.on('support:update', (payload) => {
       // New staff replies = staff messages we haven't seen before (side effects kept out of setState)
-      const seen = new Set((threadRef.current?.messages || []).map((m) => String(m.id)));
-      const fresh = threadRef.current ? t.messages.filter((m) => m.from === 'staff' && !seen.has(String(m.id))) : [];
-      setThread((prev) => (prev ? { ...prev, ...t } : prev));
+      const seen = new Set((threadRef.current?.messages || []).map((message) => String(message.id)));
+      const fresh = threadRef.current ? payload.messages.filter((message) => message.from === 'staff' && !seen.has(String(message.id))) : [];
+      setThread((prev) => (prev ? { ...prev, ...payload } : prev));
       if (!fresh.length) return;
       chime();
       if (!openRef.current) {
-        setUnread((u) => u + fresh.length);
+        setUnread((previousUnread) => previousUnread + fresh.length);
         const last = fresh[fresh.length - 1];
         toast(`${last.staffName || STORE_INFO.name}: ${last.text.slice(0, 80)}`, { icon: '💬', duration: 6000, id: 'support-reply' });
       }
@@ -105,25 +115,25 @@ export default function SupportChat() {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' });
   }, [thread?.messages?.length, open]);
 
-  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+  const set = (key) => (event) => setForm({ ...form, [key]: event.target.value });
 
-  const start = async (e) => {
-    e.preventDefault();
+  const start = async (event) => {
+    event.preventDefault();
     setBusy(true);
-    const c = form.contact.trim();
+    const text = form.contact.trim();
     try {
       const { data } = await shopApi.post('/support/threads', {
         name: form.name,
-        email: c.includes('@') ? c : '',
-        phone: c.includes('@') ? '' : c,
+        email: text.includes('@') ? text : '',
+        phone: text.includes('@') ? '' : text,
         topic: form.topic,
         orderNo: form.orderNo,
         message: form.message,
       });
-      store.set(KEY, data.token);
-      setToken(data.token);
+      store.set(KEY, 'me'); // the server keeps the secret in an httpOnly cookie
+      setToken('me');
       setThread(data);
-      setForm((f) => ({ ...f, message: '' }));
+      setForm((previousForm) => ({ ...previousForm, message: '' }));
     } catch (err) {
       toast.error(errMsg(err));
     } finally {
@@ -131,20 +141,20 @@ export default function SupportChat() {
     }
   };
 
-  const send = async (e) => {
-    e?.preventDefault();
+  const send = async (event) => {
+    event?.preventDefault();
     const text = draft.trim();
     if (!text || !token) return;
     setDraft('');
     // optimistic message
-    setThread((t) => ({ ...t, status: 'open', messages: [...t.messages, { id: `tmp-${Date.now()}`, from: 'customer', text, at: new Date().toISOString(), pending: true }] }));
+    setThread((previousThread) => ({ ...previousThread, status: 'open', messages: [...previousThread.messages, { id: `tmp-${Date.now()}`, from: 'customer', text, at: new Date().toISOString(), pending: true }] }));
     try {
       const { data } = await shopApi.post(`/support/threads/${token}/messages`, { message: text });
       setThread(data);
     } catch (err) {
       toast.error(errMsg(err));
       setDraft(text);
-      setThread((t) => ({ ...t, messages: t.messages.filter((m) => !m.pending) }));
+      setThread((previousThread) => ({ ...previousThread, messages: previousThread.messages.filter((message) => !message.pending) }));
     }
   };
 
@@ -179,12 +189,12 @@ export default function SupportChat() {
         {!thread ? (
           <form className="os-chat-body os-chat-start" onSubmit={start}>
             <div className="os-chat-bubble staff intro">
-              Hi{customer ? ` ${firstName(customer.name)}` : ''} 👋 Karibu {STORE_INFO.name}! Ask us anything about an order, delivery, payment or a product.
+              Hi{customer ? ` ${firstName(customer.name)}` : ''} 👋 Karibu {STORE_INFO.name}! Ask us anything about buying, selling, an order, a payment or an ad.
               You don’t need an account. Prefer WhatsApp? <button type="button" className="os-linkbtn" onClick={() => { setOpen(false); openWhatsApp(); }}>Message us there</button>.
             </div>
             <div className="os-chat-topics" role="radiogroup" aria-label="What is it about?">
-              {TOPICS.map(([k, label]) => (
-                <button type="button" key={k} role="radio" aria-checked={form.topic === k} className={form.topic === k ? 'on' : ''} onClick={() => setForm({ ...form, topic: k })}>{label}</button>
+              {TOPICS.map(([key, label]) => (
+                <button type="button" key={key} role="radio" aria-checked={form.topic === key} className={form.topic === key ? 'on' : ''} onClick={() => setForm({ ...form, topic: key })}>{label}</button>
               ))}
             </div>
             {(form.topic === 'order' || form.topic === 'delivery' || form.topic === 'payment') && (
@@ -192,11 +202,11 @@ export default function SupportChat() {
                 <label className="os-field"><span>Which order? <em>(optional)</em></span>
                   <select value={form.orderNo} onChange={set('orderNo')}>
                     <option value="">Not about a specific order</option>
-                    {recentOrders.map((o) => <option key={o.orderNo} value={o.orderNo}>{o.orderNo} · {new Date(o.createdAt).toLocaleDateString()}</option>)}
+                    {recentOrders.map((recentOrder) => <option key={recentOrder.orderNo} value={recentOrder.orderNo}>{recentOrder.orderNo} · {new Date(recentOrder.createdAt).toLocaleDateString()}</option>)}
                   </select>
                 </label>
               ) : (
-                <label className="os-field"><span>Order number <em>(optional)</em></span><input value={form.orderNo} onChange={set('orderNo')} maxLength={30} placeholder="e.g. ORD-261110-AB12" /></label>
+                <label className="os-field"><span>Order number <em>(optional)</em></span><input value={form.orderNo} onChange={set('orderNo')} maxLength={30} placeholder="e.g. OS261111-AB12C3" /></label>
               )
             )}
             {!customer && (
@@ -213,16 +223,16 @@ export default function SupportChat() {
           <>
             <div className="os-chat-body" ref={listRef}>
               <div className="os-chat-meta">Conversation {thread.ticketNo}{thread.orderNo ? ` · about ${thread.orderNo}` : ''}</div>
-              {thread.messages.map((m) => (
-                <div key={m.id} className={`os-chat-row ${m.from}`}>
-                  <div className={`os-chat-bubble ${m.from} ${m.pending ? 'pending' : ''}`}>
-                    {m.from === 'staff' && <b className="os-chat-name">{m.staffName || STORE_INFO.name}</b>}
-                    <span>{m.text}</span>
-                    <small>{m.pending ? 'Sending…' : fmt(m.at)}</small>
+              {thread.messages.map((message) => (
+                <div key={message.id} className={`os-chat-row ${message.from}`}>
+                  <div className={`os-chat-bubble ${message.from} ${message.pending ? 'pending' : ''}`}>
+                    {message.from === 'staff' && <b className="os-chat-name">{message.staffName || STORE_INFO.name}</b>}
+                    <span>{message.text}</span>
+                    <small>{message.pending ? 'Sending…' : fmt(message.at)}</small>
                   </div>
                 </div>
               ))}
-              {thread.messages.every((m) => m.from === 'customer') && (
+              {thread.messages.every((message) => message.from === 'customer') && (
                 <div className="os-chat-wait">✅ Message sent. A member of our team will reply here shortly, and you can close this window; we’ll keep the conversation.</div>
               )}
               {thread.status === 'closed' && (
@@ -233,8 +243,8 @@ export default function SupportChat() {
               <textarea
                 rows={1}
                 value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
+                onChange={(event) => setDraft(event.target.value)}
+                onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); send(); } }}
                 placeholder="Type a message…"
                 maxLength={2000}
                 aria-label="Message"

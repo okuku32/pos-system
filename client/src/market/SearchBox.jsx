@@ -7,7 +7,7 @@ import { catIcon } from './ListingCard';
 // Works with the keyboard (↑ ↓ Enter Esc) and remembers recent searches.
 export default function SearchBox({ initial = '', big = false, autoFocus = false, placeholder }) {
   const navigate = useNavigate();
-  const [q, setQ] = useState(initial);
+  const [currentInitial, setCurrentInitial] = useState(initial);
   const [open, setOpen] = useState(false);
   const [data, setData] = useState({ terms: [], ads: [] });
   const [active, setActive] = useState(-1);
@@ -15,37 +15,37 @@ export default function SearchBox({ initial = '', big = false, autoFocus = false
   const box = useRef(null);
   const input = useRef(null);
 
-  useEffect(() => setQ(initial), [initial]);
+  useEffect(() => setCurrentInitial(initial), [initial]);
 
   // fetch suggestions as they type (debounced)
   useEffect(() => {
-    const text = q.trim();
+    const text = currentInitial.trim();
     if (text.length < 2) {
       setData({ terms: [], ads: [] });
       return undefined;
     }
     let live = true;
-    const t = setTimeout(() => {
-      api.get('/market/suggest', { params: { q: text } }).then((r) => live && setData(r.data)).catch(() => {});
+    const timer = setTimeout(() => {
+      api.get('/market/suggest', { params: { q: text } }).then((response) => live && setData(response.data)).catch(() => {});
     }, 140);
     return () => {
       live = false;
-      clearTimeout(t);
+      clearTimeout(timer);
     };
-  }, [q]);
+  }, [currentInitial]);
 
   useEffect(() => {
-    const close = (e) => box.current && !box.current.contains(e.target) && setOpen(false);
+    const close = (event) => box.current && !box.current.contains(event.target) && setOpen(false);
     document.addEventListener('mousedown', close);
     return () => document.removeEventListener('mousedown', close);
   }, []);
 
-  const showRecent = q.trim().length < 2;
+  const showRecent = currentInitial.trim().length < 2;
   const items = showRecent
-    ? recent.map((r) => ({ kind: 'recent', label: r, href: `/market/search?q=${encodeURIComponent(r)}` }))
+    ? recent.map((item) => ({ kind: 'recent', label: item, href: `/market/search?q=${encodeURIComponent(item)}` }))
     : [
-        ...data.terms.map((t) => ({ kind: 'term', ...t })),
-        ...data.ads.map((a) => ({ kind: 'ad', label: a.title, href: `/market/item/${a.slug}`, ad: a })),
+        ...data.terms.map((term) => ({ kind: 'term', ...term })),
+        ...data.ads.map((ad) => ({ kind: 'ad', label: ad.title, href: `/market/item/${ad.slug}`, ad: ad })),
       ];
 
   const go = (href, remember) => {
@@ -56,23 +56,23 @@ export default function SearchBox({ initial = '', big = false, autoFocus = false
     navigate(href);
   };
 
-  const submit = (e) => {
-    e?.preventDefault();
-    if (active >= 0 && items[active]) return go(items[active].href, items[active].kind === 'ad' ? null : q.trim() || items[active].label);
-    const text = q.trim();
+  const submit = (event) => {
+    event?.preventDefault();
+    if (active >= 0 && items[active]) return go(items[active].href, items[active].kind === 'ad' ? null : currentInitial.trim() || items[active].label);
+    const text = currentInitial.trim();
     if (!text) return input.current?.focus();
     go(`/market/search?q=${encodeURIComponent(text)}`, text);
   };
 
-  const onKey = (e) => {
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
+  const onKey = (event) => {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
       setOpen(true);
-      setActive((a) => Math.min(items.length - 1, a + 1));
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setActive((a) => Math.max(-1, a - 1));
-    } else if (e.key === 'Escape') {
+      setActive((previousActive) => Math.min(items.length - 1, previousActive + 1));
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setActive((previousActive) => Math.max(-1, previousActive - 1));
+    } else if (event.key === 'Escape') {
       setOpen(false);
       setActive(-1);
     }
@@ -87,9 +87,9 @@ export default function SearchBox({ initial = '', big = false, autoFocus = false
       <input
         ref={input}
         type="search"
-        value={q}
-        onChange={(e) => {
-          setQ(e.target.value);
+        value={currentInitial}
+        onChange={(event) => {
+          setCurrentInitial(event.target.value);
           setOpen(true);
           setActive(-1);
         }}
@@ -104,8 +104,8 @@ export default function SearchBox({ initial = '', big = false, autoFocus = false
         aria-expanded={listOpen}
         aria-controls="mk-suggest"
       />
-      {q && (
-        <button type="button" className="mk-search-clear" onClick={() => { setQ(''); input.current?.focus(); }} aria-label="Clear search">✕</button>
+      {currentInitial && (
+        <button type="button" className="mk-search-clear" onClick={() => { setCurrentInitial(''); input.current?.focus(); }} aria-label="Clear search">✕</button>
       )}
       <button className="mk-search-btn" aria-label="Search">{big ? 'Search' : '→'}</button>
 
@@ -117,15 +117,15 @@ export default function SearchBox({ initial = '', big = false, autoFocus = false
               <button type="button" onClick={() => { clearRecent(); setRecent([]); }}>Clear</button>
             </div>
           )}
-          {items.map((it, i) => (
+          {items.map((it, index) => (
             <button
               type="button"
               key={`${it.kind}-${it.href}`}
               role="option"
-              aria-selected={i === active}
-              className={`mk-suggest-item ${i === active ? 'on' : ''} ${it.kind}`}
-              onMouseEnter={() => setActive(i)}
-              onClick={() => go(it.href, it.kind === 'ad' ? null : it.kind === 'recent' ? it.label : q.trim())}
+              aria-selected={index === active}
+              className={`mk-suggest-item ${index === active ? 'on' : ''} ${it.kind}`}
+              onMouseEnter={() => setActive(index)}
+              onClick={() => go(it.href, it.kind === 'ad' ? null : it.kind === 'recent' ? it.label : currentInitial.trim())}
             >
               {it.kind === 'ad' ? (
                 it.ad.image ? <img src={imgUrl(it.ad.image)} alt="" /> : <span className="mk-suggest-icon">{catIcon(it.ad.category)}</span>
@@ -141,7 +141,7 @@ export default function SearchBox({ initial = '', big = false, autoFocus = false
           ))}
           {!showRecent && (
             <button type="button" className="mk-suggest-all" onClick={() => submit()}>
-              See all results for “{q.trim()}” →
+              See all results for “{currentInitial.trim()}” →
             </button>
           )}
         </div>

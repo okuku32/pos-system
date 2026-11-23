@@ -8,6 +8,7 @@
     "models",
     "routes",
     "utils",
+    "security",
     ".env"
   ],
   "ext": "js,json",
