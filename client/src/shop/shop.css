@@ -966,6 +966,10 @@ i.os-note-sw { font-size: 15px; font-weight: 600; }
 .os-about-hero h1 { font-size: clamp(34px, 5.4vw, 60px); line-height: 1.05; letter-spacing: -0.02em; margin: 18px 0 16px; max-width: 760px; }
 .os-about-hero h1 em { font-style: normal; color: #ff8a3d; }
 .os-about-lead { font-size: clamp(16px, 1.8vw, 19px); line-height: 1.6; color: #d7dbe3; max-width: 680px; margin: 0 0 10px; }
+/* the hero's four reasons to join: two columns on wide screens, one on phones */
+.os-about-hero-points { list-style: none; padding: 0; margin: 18px 0 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px 22px; max-width: 760px; }
+.os-about-hero-points li { display: flex; align-items: flex-start; gap: 10px; color: #f1f3f7; font-size: 16px; font-weight: 600; line-height: 1.45; }
+.os-about-hero-points li span { flex: none; display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; background: rgba(255, 138, 61, 0.18); font-size: 17px; }
 .os-about-tagline { font-weight: 800; color: #ffb48a; margin: 0 0 26px; letter-spacing: 0.01em; }
 .os-about-ctas { display: flex; flex-wrap: wrap; gap: 12px; }
 .os-btn.os-about-btn-light { background: #fff; color: var(--os-ink); }
