@@ -7,7 +7,7 @@
   "rewrites": [
     {
       "source": "/:path*",
-      "destination": "https://REPLACE-WITH-YOUR-RENDER-SERVICE.onrender.com/:path*"
+      "destination": "https://pos-system-13.onrender.com/:path*"
     }
   ],
   "headers": [
