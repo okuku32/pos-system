@@ -8,6 +8,7 @@ import { useShop } from '../shop/ShopContext';
 import { STORE_INFO } from '../shop/storeInfo';
 import { StarPick, Stars } from './Trust';
 import './market.css';
+import { SiteName } from '../components/BrandName';
 
 const TOPICS = [['buying', 'Buying'], ['selling', 'Selling'], ['delivery', 'Delivery'], ['payments', 'Payments (M-Pesa)'], ['support', 'Customer care'], ['other', 'Something else']];
 const ROLE = { buyer: 'Buyer', seller: 'Seller', both: 'Buyer & seller' };

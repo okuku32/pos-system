@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { api, errMsg } from './marketApi';
 import PrivateFile from '../components/PrivateFile';
+import { KapuName } from '../components/BrandName';
 
 const dateText = (date) => new Date(date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 export const expiryText = (doc) => {

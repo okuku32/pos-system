@@ -12,9 +12,9 @@ import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { api, errMsg, priceText, useSeo } from './marketApi';
 import { useShop } from '../shop/ShopContext';
-import { STORE_INFO } from '../shop/storeInfo';
 import { saveReceipt } from './receipt';
 import './market.css';
+import { SiteName } from '../components/BrandName';
 
 const WAITING = ['queued', 'prompted', 'claimed', 'mismatch']; // the screen keeps checking while any part is like this (a seller may fix their code)
 const BADGE = {

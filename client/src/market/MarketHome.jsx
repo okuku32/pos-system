@@ -8,6 +8,7 @@ import ListingCard, { CardSkeletons } from './ListingCard';
 import { Stars } from './Trust';
 import InstallApp from '../shop/InstallApp';
 import './market.css';
+import { KapuName, SiteName } from '../components/BrandName';
 
 // 🐟 Samaki: the six kinds Kenyans ask for, then the latest fish ads
 const SAMAKI_TYPES = [

@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import api, { errMsg } from '../api';
 import { applySiteInfo } from '../shop/storeInfo';
 import { useAuth } from '../context/AuthContext';
+import { KapuName } from '../components/BrandName';
 
 // the settings that change what people pay or earn: only the owner changes them (the server enforces it too)
 const MONEY_SETTINGS = ['commissionPercent', 'fieldwork', 'courier', 'demoPayments'];

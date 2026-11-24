@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { STORE_INFO } from './storeInfo';
+import { KapuName } from '../components/BrandName';
 
 export default function Welcome() {
   const [width, setWidth] = useState(null);
@@ -27,7 +28,7 @@ export default function Welcome() {
       <section className="mk-welcome" role="status" aria-live="polite">
         <span className="mk-welcome-emoji" aria-hidden="true">🎉</span>
         <div>
-          <h2>Welcome to Kapu, {width.name}!</h2>
+          <h2>Welcome to <KapuName />, {width.name}!</h2>
           <p>{STORE_INFO.tagline} {width.seller ? 'Post your first ad in a minute and reach buyers across Kenya.' : 'Find great deals near you, chat with sellers and pay safely with M-Pesa.'}</p>
         </div>
         <div className="mk-welcome-actions">

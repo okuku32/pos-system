@@ -7,6 +7,7 @@ import { prettyPhone } from '../shop/shopApi';
 import { STORE_INFO } from '../shop/storeInfo';
 import { AdImage } from './ListingCard';
 import './market.css';
+import { SiteName, TextWithSiteName } from '../components/BrandName';
 
 const fmtDate = (date) => (date ? new Date(date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' }) : '–');
 const fmtTime = (date) => (date ? new Date(date).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : '–');
@@ -45,7 +46,7 @@ export function PolePolePolicy() {
       </div>
       <section className="mk-box">
         <h2>Lipa Pole Pole sale agreement policy</h2>
-        <ol className="mk-policy-list">{POLICY.map((item) => <li key={item}>{item}</li>)}</ol>
+        <ol className="mk-policy-list">{POLICY.map((item) => <li key={item}><TextWithSiteName text={item} /></li>)}</ol>
       </section>
       <Link to="/" className="os-back">← Back to the marketplace</Link>
     </div>
@@ -157,7 +158,7 @@ export function AgreementForm() {
 
         <section className="mk-box">
           <h2><span className="mk-step">3</span> Policy</h2>
-          <ol className="mk-policy-list small">{POLICY.map((item) => <li key={item}>{item}</li>)}</ol>
+          <ol className="mk-policy-list small">{POLICY.map((item) => <li key={item}><TextWithSiteName text={item} /></li>)}</ol>
           <label className="mk-check mk-mt"><input type="checkbox" checked={values.agree} onChange={set('agree')} required /> I have read and agree to this agreement and the Lipa Pole Pole sale policy.</label>
         </section>
         <div className="mk-sell-submit"><button className="os-btn os-btn-brand os-btn-lg" disabled={busy}>{busy ? 'Sending…' : 'Send agreement to ' + conversation.other.name.split(' ')[0]}</button></div>
@@ -291,7 +292,7 @@ export function AgreementPage() {
 
           <section>
             <h2>Policy</h2>
-            <ol className="mk-policy-list small">{POLICY.map((item) => <li key={item}>{item}</li>)}</ol>
+            <ol className="mk-policy-list small">{POLICY.map((item) => <li key={item}><TextWithSiteName text={item} /></li>)}</ol>
             {agreement.cancelReason && agreement.status === 'cancelled' && <p className="mk-err-text">Cancelled by the {agreement.cancelledBy}: {agreement.cancelReason}</p>}
           </section>
 

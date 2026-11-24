@@ -13,6 +13,7 @@ import { CallButton } from '../shop/Calls';
 import { useShop } from '../shop/ShopContext';
 import { setChosenAgent, useChosenAgent } from './ChosenAgent';
 import './market.css';
+import { SiteName } from '../components/BrandName';
 
 // mama mbogas & fish sellers: their produce and prices show right on their card (per kifungu, kg, piece, fungu…)
 const sellsFood = (seller) => (seller.shop?.kinds || []).includes('mama-mboga') || (seller.categories || []).some((category) => ['fresh-produce', 'samaki'].includes(category.slug));

@@ -6,6 +6,7 @@ import { useShop } from './ShopContext';
 import { connectSocket, chime } from '../realtime';
 import { STORE_INFO } from './storeInfo';
 import { openWhatsApp } from './WhatsAppSupport';
+import { SiteName } from '../components/BrandName';
 
 // Floating customer support chat. Works without an account: the conversation is remembered in this
 // browser by a secret token. Open it from anywhere with window.dispatchEvent(new Event('kapu:chat')).

@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import toast from 'react-hot-toast';
 import { installState, onInstallChange, promptInstall } from '../pwa';
 import { STORE_INFO } from './storeInfo';
+import { SiteName, TextWithSiteName } from '../components/BrandName';
 
 const isAndroid = () => /android/i.test(navigator.userAgent);
 

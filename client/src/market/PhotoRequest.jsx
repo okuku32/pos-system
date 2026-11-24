@@ -10,6 +10,7 @@ import { useShop } from '../shop/ShopContext';
 import { Sheet } from './Trust';
 import PrivateFile from '../components/PrivateFile';
 import './market.css';
+import { KapuName } from '../components/BrandName';
 
 const priceText = (amount) => `KSh ${Number(amount || 0).toLocaleString('en-KE')}`;
 const MAX = 3;

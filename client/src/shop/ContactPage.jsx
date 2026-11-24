@@ -7,6 +7,7 @@ import { openSupportChat } from './SupportChat';
 import { openWhatsApp } from './WhatsAppSupport';
 import { SOCIAL_KEYS, SOCIAL_NAMES, SocialIcon } from './Social';
 import { useSeo } from '../market/marketApi';
+import { SiteName } from '../components/BrandName';
 
 // 0768507798 / 254768507798 → "0768 507 798" (to read) and "tel:+254768507798" (to dial)
 const local = (phone) => String(phone || '').replace(/\D/g, '').replace(/^254/, '0');

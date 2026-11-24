@@ -5,6 +5,7 @@
 // field is tapped (&seller=<id>).
 import { useEffect, useRef, useState } from 'react';
 import { api, priceText } from './marketApi';
+import { KapuName } from '../components/BrandName';
 
 export default function ItemSuggest({ value, onChange, onPickItem, onPickAd, placeholder, id, sellerId = '', sellerName = '' }) {
   const [data, setData] = useState({ items: [], ads: [] });

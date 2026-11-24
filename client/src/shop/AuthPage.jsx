@@ -14,6 +14,7 @@ import { AddressInput } from '../market/Maps';
 import SellerTrade from '../market/SellerTrade';
 import { TRADE_KINDS, emptyTrade, dropKind, tradeMissing, tradePayload } from '../market/tradeRules';
 import './shop.css';
+import { SiteName } from '../components/BrandName';
 
 // mode: 'login' | 'signup'
 // seller types at sign-up: [shop kind, icon, name, hint, the category they'll post in first]

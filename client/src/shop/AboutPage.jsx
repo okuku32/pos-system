@@ -3,10 +3,10 @@
 // until then the strip shows our promises instead.
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { KapuName } from '../components/BrandName';
+import { SiteName, TextWithSiteName } from '../components/BrandName';
 import { rememberBrowse } from './browse';
 import { useAboutTour } from './aboutTour';
-import { STORE_INFO, isKapu } from './storeInfo';
+import { STORE_INFO } from './storeInfo';
 import { openSupportChat } from './SupportChat';
 import { api, useSeo } from '../market/marketApi';
 
@@ -170,21 +170,21 @@ export default function AboutPage({ launch = false, onExplore }) {
     <div className="os-about">
       {touring && (
         <div className="os-tour-note" role="status">
-          <span className="os-tour-dot" aria-hidden="true" />Showing you around {name}
+          <span className="os-tour-dot" aria-hidden="true" /><span>Showing you around <SiteName light /></span>
           <button type="button" onClick={stop}>Stop</button>
         </div>
       )}
       {/* before the official launch: the invitation */}
       {launch && (
         <div className="os-launch-bar" role="note">
-          <span><span className="os-launch-dot" aria-hidden="true" /><b>Launching soon.</b> Join now: be among the first buyers and sellers on {name}{members >= 50 ? `, with ${(Math.floor(members / 10) * 10).toLocaleString('en-KE')}+ early members` : ''}.</span>
+          <span><span className="os-launch-dot" aria-hidden="true" /><b>Launching soon.</b> Join now: be among the first buyers and sellers on <SiteName light />{members >= 50 ? `, with ${(Math.floor(members / 10) * 10).toLocaleString('en-KE')}+ early members` : ''}.</span>
           <Link to="/signup" className="os-launch-bar-cta">Join free →</Link>
         </div>
       )}
       {/* hero */}
       <section className="os-about-hero">
         <div className="os-about-wrap">
-          <span className="os-about-eyebrow">{launch ? `Welcome to ${name} · launching soon` : `About ${name}`}</span>
+          <span className="os-about-eyebrow">{launch ? <>Welcome to <SiteName light /> · launching soon</> : <>About <SiteName light /></>}</span>
           <h1>Kenya’s marketplace you can <em>trust</em>.</h1>
           <p className="os-about-lead">We connect buyers and sellers across Kenya, and we stand between them so every deal is protected: safe mobile payment is guaranteed, with trained riders and agents who check your goods before you pay.</p>
           <p className="os-about-kenyan"><svg className="os-about-flag" viewBox="0 0 30 20" width="30" height="20" aria-hidden="true"><rect width="30" height="20" rx="2" fill="#fff"/><rect width="30" height="5.6" fill="#111"/><rect y="7" width="30" height="6" fill="#bb0000"/><rect y="14.4" width="30" height="5.6" rx="0" fill="#006600"/><ellipse cx="15" cy="10" rx="3.2" ry="6.4" fill="#bb0000" stroke="#111" strokeWidth="0.8"/><ellipse cx="15" cy="10" rx="1" ry="4.4" fill="#fff"/></svg>By Kenyans, for Kenyans, with Kenyans.</p>
@@ -218,9 +218,9 @@ export default function AboutPage({ launch = false, onExplore }) {
             <h2>Buying online in Kenya should never mean being conned.</h2>
           </div>
           <div className="os-about-why">
-            <p className="os-about-why-lead">Too many Kenyans have paid for a phone that never arrived, or collected goods that were not what they ordered. {name} exists to put an end to that.</p>
+            <p className="os-about-why-lead">Too many Kenyans have paid for a phone that never arrived, or collected goods that were not what they ordered. <SiteName /> exists to put an end to that.</p>
             <p className="os-about-why-local">We understand the dynamics of our local market, and that is exactly why we created{' '}
-              <Link to="/" className="os-about-namelink" title={`Go to the ${name} marketplace`} onClick={(event) => { rememberBrowse(); if (launch && onExplore) { event.preventDefault(); onExplore(); } }}>{isKapu() ? <KapuName /> : name}</Link>.</p>
+              <Link to="/" className="os-about-namelink" title={`Go to the ${name} marketplace`} onClick={(event) => { rememberBrowse(); if (launch && onExplore) { event.preventDefault(); onExplore(); } }}><SiteName /></Link>.</p>
             <p>We bring every kind of seller online, from the mama mboga next door to the country’s largest wholesalers and importers, and we add the three things online shopping in Kenya has been missing:</p>
             <ul className="os-about-pillars">
               <li><span aria-hidden="true">🔒</span><div><b>Secure payment</b><small>Safe mobile payment is guaranteed on every order paid through us.</small></div></li>
@@ -231,7 +231,7 @@ export default function AboutPage({ launch = false, onExplore }) {
             <figure className="os-about-promise">
               <figcaption>Our promise</figcaption>
               <blockquote>Entrust us with your shopping and delivery, and we guarantee that your goods reach you <b>on time and safely</b>.</blockquote>
-              <span className="os-about-promise-sign">The {name} team</span>
+              <span className="os-about-promise-sign">The <SiteName /> team</span>
             </figure>
           </div>
         </section>
@@ -262,7 +262,7 @@ export default function AboutPage({ launch = false, onExplore }) {
           </div>
           <div className="os-about-markets-intro">
             <p>Gikomba, Wakulima, Toi, Muthurwa, Kariakor, Kongowea… Kenya’s markets feed and clothe millions of us. Yet for generations a trader’s customers have been limited to the people who happen to walk past their stall.</p>
-            <p><b>{name} digitises the physical market.</b> We bring market traders on board, give every one of them a free online shop linked to their market and stall, and put them in front of a far larger audience: buyers across the city and the whole country, shopping from their phones. The market stays the market, with its prices, its variety and its people. It simply reaches everyone now.</p>
+            <p><b><SiteName /> digitises the physical market.</b> We bring market traders on board, give every one of them a free online shop linked to their market and stall, and put them in front of a far larger audience: buyers across the city and the whole country, shopping from their phones. The market stays the market, with its prices, its variety and its people. It simply reaches everyone now.</p>
           </div>
           <div className="os-about-markets-cols">
             <div className="os-about-markets-col">
@@ -276,7 +276,7 @@ export default function AboutPage({ launch = false, onExplore }) {
           </div>
           <div className="os-about-markets-steps">
             <h3>How a market goes online</h3>
-            <ol>{MARKET_STEPS.map(([step, text], index) => <li key={step}><span className="os-about-num">{index + 1}</span><div><b>{step}</b><small>{text}</small></div></li>)}</ol>
+            <ol>{MARKET_STEPS.map(([step, text], index) => <li key={step}><span className="os-about-num">{index + 1}</span><div><b>{step}</b><small><TextWithSiteName text={text} /></small></div></li>)}</ol>
           </div>
           <MarketsOnline />
           <div className="os-about-markets-ctas">
@@ -310,7 +310,7 @@ export default function AboutPage({ launch = false, onExplore }) {
         <section className="os-about-section os-about-trust" aria-labelledby="about-trust">
           <div className="os-about-head">
             <span className="os-about-kicker">Your safety comes first</span>
-            <h2 id="about-trust">Why people trust {name}</h2>
+            <h2 id="about-trust">Why people trust <SiteName /></h2>
           </div>
           <ul>
             {TRUST.map(([icon, title, text]) => (
@@ -334,7 +334,7 @@ export default function AboutPage({ launch = false, onExplore }) {
           <section className="os-launch-join" aria-labelledby="launch-join">
             <div className="os-about-head center">
               <span className="os-about-kicker">Be part of the launch</span>
-              <h2 id="launch-join">Join {name} before we open to everyone</h2>
+              <h2 id="launch-join">Join <SiteName /> before we open to everyone</h2>
               <p>Set up early and be ready on day one.</p>
             </div>
             <div className="os-launch-cards">

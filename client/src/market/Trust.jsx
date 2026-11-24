@@ -5,6 +5,7 @@ import { api, errMsg, priceText } from './marketApi';
 import { useShop } from '../shop/ShopContext';
 import { prettyPhone } from '../shop/shopApi';
 import { STORE_INFO } from '../shop/storeInfo';
+import { SiteName } from '../components/BrandName';
 
 // Pages with a pay button near the bottom: hide the floating help buttons so they don't cover it
 export function useHideFabs() {

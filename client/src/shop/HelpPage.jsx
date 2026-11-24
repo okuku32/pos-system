@@ -4,6 +4,7 @@ import { STORE_INFO, directionsUrl, mapEmbedUrl } from './storeInfo';
 import { openSupportChat } from './SupportChat';
 import { openWhatsApp } from './WhatsAppSupport';
 import { useSeo } from '../market/marketApi';
+import { TextWithSiteName } from '../components/BrandName';
 
 const FAQ = [
   ['How do I buy something?', 'Items marked “Buy online” can be added to your cart and paid for with M-Pesa or cash on delivery; the seller delivers it or you pick it up. For everything else (cars, land, big items), tap “Chat with seller” or show their phone number and agree directly.'],
@@ -53,7 +54,7 @@ export default function HelpPage() {
                 <button onClick={() => setOpenFaq(openFaq === index ? -1 : index)} aria-expanded={openFaq === index}>
                   <span>{key}</span><i aria-hidden="true">+</i>
                 </button>
-                <p>{value}</p>
+                <p><TextWithSiteName text={value} /></p>
               </div>
             ))}
           </div>

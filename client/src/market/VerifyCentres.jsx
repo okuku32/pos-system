@@ -6,6 +6,7 @@ import { api, errMsg, useSeo } from './marketApi';
 import { directionsTo, getHere, GMap, kmText, lastHere } from './Maps';
 import { STORE_INFO } from '../shop/storeInfo';
 import './market.css';
+import { SiteName } from '../components/BrandName';
 
 const NAIROBI = { lat: -1.286389, lng: 36.817223 };
 

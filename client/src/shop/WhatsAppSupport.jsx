@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useShop } from './ShopContext';
 import { STORE_INFO } from './storeInfo';
 import { firstName } from './shopApi';
+import { SiteName } from '../components/BrandName';
 
 // WhatsApp support. With a WhatsApp number in Settings → Business details it opens real WhatsApp
 // (wa.me) with the message pre-filled. Without one, it opens a MOCK WhatsApp chat so the flow can be

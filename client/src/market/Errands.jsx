@@ -11,6 +11,7 @@ import { PayNumber } from './Checkout';
 import { RateRider, RiderLive } from './Deliveries';
 import PrivateFile from '../components/PrivateFile';
 import './market.css';
+import { KapuName } from '../components/BrandName';
 
 const validPhone = (phone) => /^(?:\+?254|0)?[17]\d{8}$/.test(String(phone || '').replace(/[\s-]/g, ''));
 const STATUS = {

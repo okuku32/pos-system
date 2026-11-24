@@ -16,6 +16,7 @@ import WorkerDocs from './WorkerDocs';
 import PrivateFile from '../components/PrivateFile';
 import RiderMap from './RiderMap';
 import './market.css';
+import { KapuName, SiteName } from '../components/BrandName';
 
 const VEHICLES = ['Motorbike', 'Bicycle', 'Tuk-tuk', 'Car', 'Van / pickup', 'On foot'];
 const navTo = (lat, lng) => `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;

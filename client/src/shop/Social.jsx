@@ -1,5 +1,6 @@
 // Our social media pages (shown on the Contact us page). Links come from Admin → Settings.
 import { STORE_INFO } from './storeInfo';
+import { SiteName } from '../components/BrandName';
 
 const ICONS = {
   tiktok: ['TikTok', 'M16.6 5.82A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 1 1-2.59-2.6c.27 0 .53.04.77.12V9.77a5.7 5.7 0 0 0-.77-.05 5.69 5.69 0 1 0 5.69 5.68V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3a4.28 4.28 0 0 1-3.25-1.48Z'],

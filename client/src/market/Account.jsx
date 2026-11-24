@@ -5,13 +5,13 @@ import toast from 'react-hot-toast';
 import { api, errMsg, useCategories, useSeo } from './marketApi';
 import { useShop } from '../shop/ShopContext';
 import { prettyPhone } from '../shop/shopApi';
-import { STORE_INFO } from '../shop/storeInfo';
 import SellerTypesPicker from './SellerTypesPicker';
 import SellerTrade from './SellerTrade';
 import { TRADE_KINDS, tradeOf, dropKind, tradeMissing, tradePayload } from './tradeRules';
 import { Stars, Verified } from './Trust';
 import { ShopLocationEditor, AddressInput } from './Maps';
 import './market.css';
+import { SiteName } from '../components/BrandName';
 
 // My account: profile (also shown to buyers on my seller page) and shortcuts to everything I use
 export default function Account() {

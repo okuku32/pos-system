@@ -13,6 +13,7 @@ import { SplitPayWait } from './SplitPay';
 import { ChosenAgentCard, clearChosenAgent, useChosenAgent } from './ChosenAgent';
 import RiderScan from './RiderScan';
 import './market.css';
+import { SiteName } from '../components/BrandName';
 
 // a Safaricom number: 07XX… / 01XX… / 2547… / +2547…
 const validPhone = (phone) => /^(?:\+?254|0)?[17]\d{8}$/.test(String(phone || '').replace(/[\s-]/g, ''));

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import api, { errMsg } from '../api';
+import { KapuName } from '../components/BrandName';
 
 // Admin → Reviews of us: what buyers and sellers say about Kapu. Reply publicly; hide only abuse, spam or
 // personal details (never because a review is negative). Hiding and showing are logged in the Security log.

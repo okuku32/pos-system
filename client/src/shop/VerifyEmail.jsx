@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import shopApi, { errMsg } from './shopApi';
-import { STORE_INFO } from './storeInfo';
 import { useSeo } from '../market/marketApi';
+import { SiteName } from '../components/BrandName';
 
 // where a new seller goes first (what they said they sell when they signed up)
 const FIRST = { 'mama-mboga': 'fresh-produce', samaki: 'samaki', grocery: 'cooking-products', chemist: '', boutique: 'clothes-shoes', electronics: 'electronics', spares: 'spare-parts', 'baby-shop': 'baby-kids' };

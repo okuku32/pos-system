@@ -18,6 +18,7 @@ import { PayNumber } from './Checkout';
 import ItemSuggest from './ItemSuggest';
 import { ChosenAgentCard, clearChosenAgent, useChosenAgent } from './ChosenAgent';
 import './market.css';
+import { KapuName } from '../components/BrandName';
 
 const validPhone = (phone) => /^(?:\+?254|0)?[17]\d{8}$/.test(String(phone || '').replace(/[\s-]/g, ''));
 const digits = (value) => String(value || '').replace(/\D/g, '').replace(/^254/, '0');

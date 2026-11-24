@@ -40,6 +40,7 @@ import NotificationBell from './NotificationBell';
 import CallManager from './Calls';
 import Welcome from './Welcome';
 import InstallApp from './InstallApp';
+import { KapuName, SiteName } from '../components/BrandName';
 
 // 🔎 search on every page (✨ Ask AI is in the top bar), pinned under the top bar. Not on the home page (it's in the hero),
 // not where it gets in the way (signing in, paying, a full-screen chat); pages with their own search bar hide this one (CSS)

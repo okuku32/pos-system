@@ -6,11 +6,11 @@ import { Link, Navigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { api, errMsg, priceText, useSeo } from './marketApi';
 import { useShop } from '../shop/ShopContext';
-import { STORE_INFO } from '../shop/storeInfo';
 import { embedSrc, GMap, openInMaps, useMaps } from './Maps';
 import { useRoadLine } from './roadLine';
 import { RideContact } from '../shop/Calls';
 import './market.css';
+import { SiteName } from '../components/BrandName';
 
 const when = (date) => (date ? new Date(date).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '');
 const day = (date) => (date ? new Date(date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '');
