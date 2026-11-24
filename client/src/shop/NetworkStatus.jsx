@@ -21,6 +21,10 @@ export default function NetworkStatus() {
     const onOnline = () => set(true);
     const onOffline = () => set(false);
     const onNetwork = (event) => set(!!event.detail?.online);
+    // the server was asleep (free hosting) and is starting: the form waits, then goes through (session.js serverAwake);
+    // the first successful answer ("kapu:network" online) clears this notice
+    const onServerWaking = () => setState((current) => (current === 'offline' ? current : 'waking'));
+    window.addEventListener('kapu:server-waking', onServerWaking);
     window.addEventListener('online', onOnline);
     window.addEventListener('offline', onOffline);
     window.addEventListener('kapu:network', onNetwork);
@@ -28,13 +32,16 @@ export default function NetworkStatus() {
       window.removeEventListener('online', onOnline);
       window.removeEventListener('offline', onOffline);
       window.removeEventListener('kapu:network', onNetwork);
+      window.removeEventListener('kapu:server-waking', onServerWaking);
       clearTimeout(timer.current);
     };
   }, []);
   if (state === 'online') return null;
   return (
     <div className={`os-network ${state}`} role="status" aria-live="polite">
-      {state === 'offline' ? '📡 You’re offline. We’ll reconnect by ourselves; what you see may be out of date.' : '✅ Back online'}
+      {state === 'offline' ? '📡 You’re offline. We’ll reconnect by ourselves; what you see may be out of date.'
+        : state === 'waking' ? '⏳ Starting up, one moment… Your form will be sent as soon as we’re ready.'
+        : '✅ Back online'}
     </div>
   );
 }

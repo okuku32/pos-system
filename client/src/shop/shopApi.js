@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { flag, takeLegacy, withCsrf } from '../session';
+import { flag, takeLegacy, withCsrf, isChange, serverAwake, noteServerAnswered } from '../session';
 import { isNative, tokenReady, saveAppToken } from '../platform';
 
 // API client for buyers and sellers. The login is an httpOnly session cookie (separate from the admin one);
@@ -23,6 +23,7 @@ export const isNetworkError = (error) => !error.response && (error.code === 'ERR
 shopApi.interceptors.response.use(
   (res) => {
     tell(true);
+    noteServerAnswered(); // the server is up: changes in the next minutes go straight through
     return res;
   },
   async (error) => {
@@ -51,6 +52,7 @@ const upgradeOldLogin = () => {
 };
 
 shopApi.interceptors.request.use(async (config) => {
+  if (isChange(config)) await serverAwake(); // a sleeping server is woken first; the change itself is sent only once
   if (isNative) {
     // the Android app: the login token from the app's private storage (see platform.js)
     const token = await tokenReady();

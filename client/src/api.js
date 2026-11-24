@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { flag, takeLegacy, withCsrf } from './session';
+import { flag, takeLegacy, withCsrf, isChange, serverAwake, noteServerAnswered } from './session';
 
 // Staff login: an httpOnly session cookie (SameSite=Strict). localStorage only keeps a "signed in" hint.
 const BASE = import.meta.env.VITE_API_URL || '/api';
@@ -56,13 +56,17 @@ try {
 export const staffLoginPath = () => (staffGate.has() ? '/staff' : '/');
 
 api.interceptors.request.use(async (config) => {
+  if (isChange(config)) await serverAwake(); // a sleeping server is woken first; the change itself is sent only once
   await upgradeOldLogin();
   withCsrf(config);
   return config;
 });
 
 api.interceptors.response.use(
-  (res) => res,
+  (res) => {
+    noteServerAnswered();
+    return res;
+  },
   (err) => {
     if (err.response?.status === 401 && !err.config.url.includes('/auth/login')) {
       setStaffSignedIn(false);
