@@ -6,6 +6,10 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/",
+      "destination": "https://pos-system-13.onrender.com/"
+    },
+    {
       "source": "/:path*",
       "destination": "https://pos-system-13.onrender.com/:path*"
     }
