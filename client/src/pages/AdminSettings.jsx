@@ -185,9 +185,9 @@ export default function AdminSettings() {
           <b>{info.mpesa.configured ? 'Set up' : 'Not set up'}</b>
           <small className="muted">Keys live in server/.env. Payment results arrive at {info.mpesa.callbackUrl || '(set PUBLIC_API_URL)'}</small>
         </div>
-        <div className={`card stat ${info.email.mode === 'smtp' ? 'stat-good' : ''}`}>
+        <div className={`card stat ${info.email.mode === 'smtp' || info.email.mode === 'brevo' ? 'stat-good' : ''}`}>
           <span className="muted">Email</span>
-          <b>{info.email.mode === 'smtp' ? `Sending via ${info.email.host}` : info.email.mode === 'ethereal' ? 'Test inbox (not delivered)' : 'Off'}</b>
+          <b>{info.email.mode === 'brevo' ? 'Sending via Brevo' : info.email.mode === 'smtp' ? `Sending via ${info.email.host}` : info.email.mode === 'ethereal' ? 'Test inbox (not delivered)' : 'Off'}</b>
           <div className="toolbar" style={{ marginTop: 6 }}>
             <input type="email" placeholder="you@example.com" value={testTo} onChange={(event) => setTestTo(event.target.value)} />
             <button className="btn ghost sm" onClick={testEmail}>Send test</button>

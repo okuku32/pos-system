@@ -49,7 +49,10 @@ services:
       # 64 hex characters: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
       - key: PAY_SECRETS_KEY
         sync: false
-      # email (verification and password-reset emails)
+      # email (verification and password-reset emails). On the free plan email ports are blocked: use BREVO_API_KEY
+      # (Brevo's web API; MAIL_FROM must be a sender verified in Brevo). On a paid plan SMTP works too.
+      - key: BREVO_API_KEY
+        sync: false
       - key: SMTP_HOST
         sync: false
       - key: SMTP_PORT

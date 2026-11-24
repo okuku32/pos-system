@@ -1,6 +1,34 @@
-// Email sending. Uses your SMTP account when SMTP_HOST is set in .env.
-// Without it (development), it uses a free Ethereal test inbox and logs a link to preview each email.
+// Email sending, in this order of preference:
+//  1. BREVO_API_KEY set: Brevo's web API (HTTPS, port 443). Use this on hosts that block email ports, e.g. Render's
+//     free plan, where SMTP connections to Gmail time out. The sender (MAIL_FROM) must be a sender verified in Brevo.
+//  2. SMTP_HOST set: your SMTP account (Gmail, Zoho…).
+//  3. Neither (development): a free Ethereal test inbox, with a link to preview each email in the log.
 const nodemailer = require('nodemailer');
+
+const BREVO_SEND_ADDRESS = 'https://api.brevo.com/v3/smtp/email';
+// never in automated tests: they must not send real emails, whatever is in the developer's .env
+const brevoEnabled = () => Boolean(process.env.BREVO_API_KEY) && process.env.NODE_ENV !== 'test';
+
+// Sends one email through Brevo's API. Throws on failure, like nodemailer, so the caller logs it and the job retries.
+async function sendWithBrevo({ fromAddress, fromName, to, subject, html, text, replyTo }) {
+  const response = await fetch(BREVO_SEND_ADDRESS, {
+    method: 'POST',
+    headers: { 'api-key': process.env.BREVO_API_KEY, 'content-type': 'application/json', accept: 'application/json' },
+    body: JSON.stringify({
+      sender: { name: fromName, email: fromAddress },
+      to: [{ email: to }],
+      subject,
+      ...(html ? { htmlContent: html } : {}),
+      ...(text ? { textContent: text } : {}),
+      ...(replyTo ? { replyTo: { email: replyTo } } : {}),
+    }),
+    signal: AbortSignal.timeout(20000), // a stuck connection must not hold the email queue forever
+  });
+  const answer = await response.json().catch(() => ({}));
+  // Brevo explains refusals in "message" (e.g. an unverified sender, or a wrong key): pass that on to the log
+  if (!response.ok) throw new Error(`Brevo ${response.status}: ${answer.message || response.statusText}`);
+  return { messageId: answer.messageId || '' };
+}
 
 let transporterPromise = null;
 let mode = 'none';
@@ -63,10 +91,16 @@ function fromHeaders(sender) {
 }
 
 // Never throws: an email problem must never break an order or a payment.
-async function sendMailNow({ to, subject, html, text }) {
+async function sendMailNow({ to, subject, html, text, replyTo }) {
   if (!to) return { sent: false, reason: 'no recipient' };
   try {
     const sender = senderFor();
+    if (brevoEnabled()) {
+      // Brevo sends as the verified MAIL_FROM address itself, under the site's name ("Kapu <you@gmail.com>")
+      const result = await sendWithBrevo({ fromAddress: emailOf(sender.from), fromName: nameOf(sender.from) || 'Kapu', to, subject, html, text, replyTo });
+      console.log(`[email] "${subject}" -> ${to} (Brevo)`);
+      return { sent: true, preview: null, messageId: result.messageId };
+    }
     const transporter = sender.transport || (await getTransporter());
     if (!transporter) return { sent: false, reason: `email ${mode}` };
     const info = await transporter.sendMail({
@@ -85,7 +119,7 @@ async function sendMailNow({ to, subject, html, text }) {
   }
 }
 
-const emailMode = () => (process.env.SMTP_HOST ? 'smtp' : process.env.NODE_ENV === 'production' ? 'disabled' : 'ethereal');
+const emailMode = () => (brevoEnabled() ? 'brevo' : process.env.SMTP_HOST ? 'smtp' : process.env.NODE_ENV === 'production' ? 'disabled' : 'ethereal');
 
 // queued: the request doesn't wait for the mail server, and a failed send is retried (utils/jobs.js)
 function sendMail(message) {
