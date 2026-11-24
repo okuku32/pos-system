@@ -10,7 +10,8 @@
     "prepare": "git config core.hooksPath .githooks || true",
     "check:secrets": "node scripts/check-secrets.js --all",
     "check:security": "node scripts/security-check.js",
-    "staff-link": "npm run staff-link --prefix server"
+    "staff-link": "npm run staff-link --prefix server",
+    "staff-reset": "npm run staff-reset --prefix server --"
   },
   "devDependencies": {
     "concurrently": "^10.0.7",

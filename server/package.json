@@ -24,7 +24,8 @@
     "test:docs": "node --test --test-concurrency=1 tests/fieldteam-docs.test.js",
     "remove-old-pos": "node utils/removeOldPos.js",
     "staff-link": "node utils/staffLink.js",
-    "test:roles": "node --test --test-concurrency=1 tests/roles.test.js"
+    "test:roles": "node --test --test-concurrency=1 tests/roles.test.js",
+    "staff-reset": "node utils/staffReset.js"
   },
   "keywords": [],
   "author": "",
