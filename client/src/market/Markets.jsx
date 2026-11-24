@@ -185,7 +185,7 @@ function MarketCard({ m: location, n: number }) {
         <Link to={`/markets/${location.slug}`} className="mk-near-name"><b>{KIND_ICON[location.kind]} {location.name}</b></Link>
         <small>{location.kindName} · {[location.area, location.county].filter(Boolean).join(', ')}{location.days ? ` · ${location.days}` : ''}</small>
         {location.about && <span className="mk-near-addr">{location.about}</span>}
-        <span className="mk-near-bulk">{location.traders ? `🧑‍🌾 ${location.traders} trader${location.traders === 1 ? '' : 's'} on ${STORE_INFO.name}` : 'No traders registered yet'}{location.agents ? ` · 🧑‍💼 ${location.agents} shopping agent${location.agents === 1 ? '' : 's'}` : ''}</span>
+        <span className="mk-near-bulk">{location.traders ? <>🧑‍🌾 {location.traders} trader{location.traders === 1 ? '' : 's'} on <SiteName /></> : 'No traders registered yet'}{location.agents ? ` · 🧑‍💼 ${location.agents} shopping agent${location.agents === 1 ? '' : 's'}` : ''}</span>
       </div>
       <div className="mk-near-side">
         {location.km != null && <b className="mk-near-km">{kmText(location.km)}</b>}

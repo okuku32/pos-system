@@ -24,7 +24,7 @@ export function ReviewCard({ review }) {
         <small>{dateText(review.at)}{review.edited ? ' · edited' : ''}{review.topic && review.topic !== 'other' ? ` · ${TOPICS.find(([key]) => key === review.topic)?.[1]}` : ''}</small>
       </div>
       <p>{review.comment}</p>
-      {review.reply && <p className="mk-review-reply"><b>{STORE_INFO.name} team:</b> {review.reply}</p>}
+      {review.reply && <p className="mk-review-reply"><b><SiteName /> team:</b> {review.reply}</p>}
     </article>
   );
 }
@@ -43,13 +43,13 @@ function RateUs({ onSaved }) {
       else if (response.data.role === 'seller') setForm((previous) => ({ ...previous, topic: 'selling' }));
     }).catch(() => setMine({ canReview: false }));
   }, [customer]);
-  if (!customer) return <div className="mk-box mk-rate-us" id="rate"><b>Used {STORE_INFO.name}? Tell everyone how it went.</b><p className="os-muted">Log in to rate us. Only real buyers and sellers can post a review.</p><Link className="os-btn os-btn-brand" to="/login?next=reviews">Log in to rate us</Link></div>;
+  if (!customer) return <div className="mk-box mk-rate-us" id="rate"><b>Used <SiteName />? Tell everyone how it went.</b><p className="os-muted">Log in to rate us. Only real buyers and sellers can post a review.</p><Link className="os-btn os-btn-brand" to="/login?next=reviews">Log in to rate us</Link></div>;
   if (!mine) return null;
-  if (!mine.canReview) return <div className="mk-box mk-rate-us" id="rate"><b>Rate us after your first order, sale or ad</b><p className="os-muted">So every review here comes from someone who really used {STORE_INFO.name}.</p><Link className="os-btn os-btn-ghost" to="/">Start shopping</Link> <Link className="os-btn os-btn-ghost" to="/market/sell">Post an ad</Link></div>;
+  if (!mine.canReview) return <div className="mk-box mk-rate-us" id="rate"><b>Rate us after your first order, sale or ad</b><p className="os-muted">So every review here comes from someone who really used <SiteName />.</p><Link className="os-btn os-btn-ghost" to="/">Start shopping</Link> <Link className="os-btn os-btn-ghost" to="/market/sell">Post an ad</Link></div>;
   if (mine.review && !editing) {
     return (
       <div className="mk-box mk-rate-us" id="rate">
-        <b>Your review of {STORE_INFO.name}</b>
+        <b>Your review of <SiteName /></b>
         <ReviewCard review={mine.review} />
         <button type="button" className="os-linkbtn" onClick={() => setEditing(true)}>Edit my review</button>
       </div>
@@ -73,7 +73,7 @@ function RateUs({ onSaved }) {
   };
   return (
     <form className="mk-box mk-rate-us mk-review-form" id="rate" onSubmit={send}>
-      <b>How did {STORE_INFO.name} serve you{customer.name ? `, ${customer.name.split(' ')[0]}` : ''}?</b>
+      <b>How did <SiteName /> serve you{customer.name ? `, ${customer.name.split(' ')[0]}` : ''}?</b>
       <StarPick value={form.rating} onChange={(rating) => setForm({ ...form, rating })} label="Your rating of Kapu" />
       <label className="os-field">
         <span>What was it about?</span>
@@ -121,7 +121,7 @@ export default function KapuReviews() {
     <div className="mk"><div className="mk-wrap mk-os-reviews">
         <section className="mk-work-hero">
           <h1>⭐ What our customers say</h1>
-          <p>Real reviews of {STORE_INFO.name} from buyers and sellers: how we served them, good and bad. Every review comes from someone who ordered, sold or posted an ad here.</p>
+          <p>Real reviews of <SiteName /> from buyers and sellers: how we served them, good and bad. Every review comes from someone who ordered, sold or posted an ad here.</p>
         </section>
 
         <section className="mk-box mk-os-summary" aria-label="Rating summary">

@@ -100,7 +100,7 @@ export default function AdminSettings() {
               <label>Longest trip (km)<input type="number" min="1" value={fw.riderMaxKm} onChange={setFw('riderMaxKm')} /></label>
 
               <p className="muted" style={{ margin: 0, fontSize: 13, alignSelf: 'end' }}>e.g. 3 km ≈ KSh {eg(3)}, 8 km ≈ KSh {eg(8)}</p>
-              <p className="span2 muted" style={{ margin: '6px 0 0', fontSize: 13 }}>From every rider / agent fee Kapu keeps our commission + tax (e.g. 10% + 5% = 15%). The rest is sent to their M-Pesa a set time after the job; for fees they collect themselves, our share is taken from their next payout.</p>
+              <p className="span2 muted" style={{ margin: '6px 0 0', fontSize: 13 }}>From every rider / agent fee <KapuName /> keeps our commission + tax (e.g. 10% + 5% = 15%). The rest is sent to their M-Pesa a set time after the job; for fees they collect themselves, our share is taken from their next payout.</p>
               <label>Our commission on agent fees (%)<input type="number" min="0" max="50" step="0.5" value={fw.commissionPercent ?? 10} onChange={setFw('commissionPercent')} /></label>
               <label>Tax on agent fees (%)<input type="number" min="0" max="30" step="0.5" value={fw.taxPercent ?? 5} onChange={setFw('taxPercent')} /></label>
               <label>Pay agents after (minutes)<input type="number" min="0" max="1440" value={fw.payoutDelayMin ?? 30} onChange={setFw('payoutDelayMin')} /></label>

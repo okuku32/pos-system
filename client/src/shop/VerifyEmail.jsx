@@ -41,7 +41,7 @@ export default function VerifyEmail() {
           <>
             <div className="os-verify-icon">✅</div>
             <h1>Your email is confirmed</h1>
-            <p className="os-muted">Welcome to {STORE_INFO.name}! Log in to start {state.accountType === 'seller' ? 'selling' : 'buying'}.</p>
+            <p className="os-muted">Welcome to <SiteName />! Log in to start {state.accountType === 'seller' ? 'selling' : 'buying'}.</p>
             <Link to={loginLink} className="os-btn os-btn-brand os-btn-lg os-block">Log in</Link>
           </>
         )}

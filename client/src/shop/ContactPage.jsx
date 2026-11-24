@@ -107,7 +107,7 @@ export default function ContactPage() {
           <section className="os-contact-follow" id="follow" aria-labelledby="contact-follow">
             <div className="os-about-head center">
               <span className="os-about-kicker">Follow us</span>
-              <h2 id="contact-follow">Join the {name} community</h2>
+              <h2 id="contact-follow">Join the <SiteName /> community</h2>
               <p>Deals, new arrivals, selling tips and safety guides, every week.</p>
             </div>
             <div className="os-contact-socials">
@@ -133,7 +133,7 @@ export default function ContactPage() {
           </div>
           <div className="os-contact-more-links">
             <Link className="os-btn os-btn-dark" to="/help">Help centre</Link>
-            <Link className="os-btn os-btn-ghost" to="/about">About {name}</Link>
+            <Link className="os-btn os-btn-ghost" to="/about"><span>About <SiteName /></span></Link>
           </div>
         </section>
       </div>

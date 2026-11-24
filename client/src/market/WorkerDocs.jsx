@@ -54,7 +54,7 @@ export default function WorkerDocs({ open: startOpen = false, onChange }) {
           {summary.blocked && <p className="mk-docs-alert bad">⛔ {summary.blocked}</p>}
           {summary.missing.length > 0 && <p className="mk-docs-alert wait">Please upload: <b>{summary.missing.map(label).join(', ')}</b>.</p>}
           {!summary.blocked && summary.expiring > 0 && <p className="mk-docs-alert wait">⏰ {summary.expiring} document{summary.expiring === 1 ? '' : 's'} expire{summary.expiring === 1 ? 's' : ''} within 30 days. Renew and upload the new one in time.</p>}
-          <p className="mk-hint">🔒 Only you and the Kapu team can open these. Our moderators check each one and its expiry date.</p>
+          <p className="mk-hint">🔒 Only you and the <KapuName /> team can open these. Our moderators check each one and its expiry date.</p>
           <ul className="mk-docs-list">
             {data.docs.map((doc) => {
               const [tone, text] = STATUS[doc.status] || ['wait', doc.status];

@@ -251,7 +251,7 @@ export function Sales() {
         )}
         {tab !== 'plans' && listed.some((order) => FINISHED.includes(order.status)) && <p className="mk-hint mk-swipe-hint">Swipe a delivered or cancelled order left or right, or tap ✕, to remove it from this list. Your sales totals don’t change.</p>}
         {tab !== 'plans' && <div className="mk-order-list">{listed.map((order) => <OrderRow key={order._id} o={order} to={`/sales/${order._id}`} onHide={onHide} />)}</div>}
-        <p className="mk-hint">Cash-on-delivery money goes straight to you. For M-Pesa orders, {STORE_INFO.name} pays you after delivery, minus a {STORE_INFO.commissionPercent}% service fee. When a buyer orders from several sellers at once, they pay you directly on your Till, Paybill or Pochi (no fee); connect M-Pesa prompts in <Link to="/account#pay-details">My account</Link> so they pay with one tap.</p>
+        <p className="mk-hint">Cash-on-delivery money goes straight to you. For M-Pesa orders, <SiteName /> pays you after delivery, minus a {STORE_INFO.commissionPercent}% service fee. When a buyer orders from several sellers at once, they pay you directly on your Till, Paybill or Pochi (no fee); connect M-Pesa prompts in <Link to="/account#pay-details">My account</Link> so they pay with one tap.</p>
       </div></div>
   );
 }
@@ -514,7 +514,7 @@ export function OrderDetail({ as }) {
         {!seller && order.status === 'delivered' && order.rider?.taskId && <div className="mk-box"><RateRider taskId={order.rider.taskId} name={order.rider.name} rated={order.rider.rated} /></div>}
         {!seller && order.status === 'delivered' && order.rider?.tipPhone && <TipBox o={order} onDone={setOrder} />}
         {!seller && order.status === 'delivered' && <ReviewBox orderId={order._id} sellerName={order.seller.name} />}
-        {order.status === 'delivered' && <Link to="/reviews#rate" className="mk-box mk-rate-prompt"><span>⭐</span><span><b>How did {STORE_INFO.name} serve you?</b><small>Rate us and leave a comment for everyone to see</small></span><span className="mk-more">Rate us →</span></Link>}
+        {order.status === 'delivered' && <Link to="/reviews#rate" className="mk-box mk-rate-prompt"><span>⭐</span><span><b>How did <SiteName /> serve you?</b><small>Rate us and leave a comment for everyone to see</small></span><span className="mk-more">Rate us →</span></Link>}
 
         <div className="mk-order-grid">
           <section className="mk-box">

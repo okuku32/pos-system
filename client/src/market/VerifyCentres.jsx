@@ -36,7 +36,7 @@ export default function VerifyCentres() {
     <div className="mk"><div className="mk-wrap mk-verify-page">
         <section className="mk-work-hero">
           <h1>🛡️ Safe deal: buy second-hand without the risk</h1>
-          <p>Your money is held by {STORE_INFO.name}. The seller takes the item to our nearest partner shop, where it’s checked against the ad. Only if it passes is the seller paid and our rider sent to bring it to you.</p>
+          <p>Your money is held by <SiteName />. The seller takes the item to our nearest partner shop, where it’s checked against the ad. Only if it passes is the seller paid and our rider sent to bring it to you.</p>
         </section>
 
         <ol className="mk-safe-how">
@@ -70,7 +70,7 @@ export default function VerifyCentres() {
 
         <section className="mk-box mk-verify-join">
           <h2>Have a shop in Nairobi?</h2>
-          <p>Become an {STORE_INFO.name} partner shop: verify second-hand items for buyers and earn a commission on each one. One partner per area: shops are at least {data?.spacingKm ?? 2} km apart.</p>
+          <p>Become an <SiteName /> partner shop: verify second-hand items for buyers and earn a commission on each one. One partner per area: shops are at least {data?.spacingKm ?? 2} km apart.</p>
           <Link className="os-btn os-btn-brand" to="/work">Apply as a partner shop</Link>
         </section>
       </div></div>

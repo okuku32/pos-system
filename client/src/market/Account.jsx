@@ -257,7 +257,7 @@ function MpesaConnect() {
             <label className="os-field"><span>Consumer secret *</span><input type="password" value={field.consumerSecret} onChange={set('consumerSecret')} required autoComplete="new-password" /></label>
             <label className="os-field"><span>Lipa Na M-Pesa passkey *</span><input type="password" value={field.passkey} onChange={set('passkey')} required autoComplete="new-password" /></label>
             <label className="os-field"><span>Environment</span><select value={field.env} onChange={set('env')}><option value="production">Live</option><option value="sandbox">Sandbox (testing)</option></select></label>
-            <label className="os-field"><span>Your {STORE_INFO.name} password (if you have one)</span><input type="password" value={field.password} onChange={set('password')} autoComplete="current-password" /></label>
+            <label className="os-field"><span>Your <SiteName /> password (if you have one)</span><input type="password" value={field.password} onChange={set('password')} autoComplete="current-password" /></label>
           </div>
           <div className="mk-sell-submit"><button type="button" className="os-btn os-btn-ghost" onClick={() => setOpen(false)}>Cancel</button><button className="os-btn os-btn-brand" disabled={busy}>{busy ? 'Checking with Safaricom…' : 'Connect'}</button></div>
         </form>

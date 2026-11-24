@@ -199,7 +199,7 @@ export default function AuthPage({ mode }) {
             </>
           )}
         </div>
-        <small>© {new Date().getFullYear()} {STORE_INFO.name}</small>
+        <small>© {new Date().getFullYear()} <SiteName light /></small>
       </aside>
 
       <main className="os-auth-main">
@@ -215,7 +215,7 @@ export default function AuthPage({ mode }) {
           </div>
           <h1>{isSignup ? (seller ? 'Create your seller account' : 'Create your account') : seller ? 'Seller log in' : 'Log in'}</h1>
           <p className="os-muted">
-            {isSignup ? 'Already have an account? ' : `New to ${STORE_INFO.name}? `}
+            {isSignup ? 'Already have an account? ' : <>New to <SiteName />? </>}
             <Link to={`${isSignup ? '/login' : '/signup'}?as=${as}${next ? `&next=${encodeURIComponent(next)}` : ''}`}>{isSignup ? 'Log in' : 'Create a free account'}</Link>
           </p>
           {next === 'checkout' && <div className="os-note">🛒 Your cart is saved. {isSignup ? 'Sign up' : 'Log in'} to place your order.</div>}

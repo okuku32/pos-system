@@ -58,7 +58,7 @@ function Intro({ loggedOut, worker, onApplied }) {
   return (
     <div className="mk"><div className="mk-wrap mk-work">
         <section className="mk-work-hero">
-          <h1>Earn with {text.name}</h1>
+          <h1>Earn with <SiteName light /></h1>
           <p>Ride or shop with us: jobs near you, the pay shown upfront, and your money by M-Pesa {STORE_INFO.fieldwork?.payoutDelayMin ?? 30} minutes after each job.</p>
         </section>
         {worker?.status === 'rejected' && <p className="mk-chem wait">Your last application wasn’t approved: {worker.reviewNote || 'we couldn’t confirm your details'}. You can apply again.</p>}
@@ -88,7 +88,7 @@ function Intro({ loggedOut, worker, onApplied }) {
             <span className="mk-work-icon">🛡️</span>
             <h2>Partner shop</h2>
             <ul>
-              <li>Have a <b>physical shop</b> in Nairobi? Become a Kapu verification centre</li>
+              <li>Have a <b>physical shop</b> in Nairobi? Become a <KapuName /> verification centre</li>
               <li>Sellers of second-hand items drop them at your shop; you check they match the ad, work and are genuine</li>
               <li>Earn a commission on every item you verify, paid to your M-Pesa; our shopping agents help when you need them</li>
               <li>One partner per area: shops are at least 2 km apart</li>

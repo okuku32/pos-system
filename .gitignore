@@ -58,3 +58,6 @@ secrets/
 *.archive
 dump/
 backup*/
+
+.vercel
+.env*

@@ -129,7 +129,8 @@ function Figures() {
   const promises = [
     ['🆓', 'Free', 'to post an ad'],
     ['🔒', 'Safe', 'mobile payment guaranteed'],
-    ['🔍', `KSh ${(STORE_INFO.fieldwork?.shopRide?.inspectFee ?? 200).toLocaleString('en-KE')}`, 'optional inspection, only if you ask'],
+    // the promise that wins people over: hand us the shopping, we bring it home (replaces the old "optional inspection")
+    ['🤝', 'Trust us', 'with your shopping: we deliver it to your door'],
     ['🇰🇪', '47', 'counties to buy & sell in'],
   ];
   const list = figures.length >= 3 ? figures.slice(0, 4) : promises;
@@ -161,7 +162,7 @@ export default function AboutPage({ launch = false, onExplore }) {
   }, [launch]);
   useSeo({
     title: launch ? `${name}: Kenya’s marketplace you can trust. Join before we launch` : `About ${name}: Kenya’s marketplace you can trust`,
-    description: `${name} is a Kenyan marketplace to buy and sell anything, pay safely with mobile banking, and get it delivered by trained riders. Free ads, wholesale prices, inspection and Lipa Pole Pole.`,
+    description: `${name} is a Kenyan marketplace to buy and sell anything, pay safely with mobile banking, and get it delivered by trained riders. Free ads, wholesale prices, shopping you can trust us with, and Lipa Pole Pole.`,
     path: launch ? '/' : '/about',
     jsonLd: { '@context': 'https://schema.org', '@type': 'Organization', name, url: typeof window !== 'undefined' ? window.location.origin : undefined, slogan: STORE_INFO.tagline, ...(STORE_INFO.email ? { email: STORE_INFO.email } : {}), ...(STORE_INFO.phone ? { telephone: STORE_INFO.phone } : {}), areaServed: 'KE' },
   });

@@ -127,11 +127,12 @@ function SellerBlock({ index, seller, many, points, customer, update, remove, qu
       <label className="os-field"><span>Seller’s phone <em>(paste it first: we fill in the rest and list what they sell)</em></span><input value={seller.sellerPhone} onChange={onPhone} onBlur={(event) => lookUp(event.target.value)} inputMode="tel" placeholder="07XX XXX XXX" /></label>
       {looking && <p className="mk-ride-seller"><span className="page-spinner" /> Looking for the seller…</p>}
       {!looking && found?.found && (
-        <p className="mk-ride-seller ok">✅ <b>{found.shopName || found.name}</b> is on Kapu{found.area || found.market ? ` · ${[found.market, found.area].filter(Boolean).join(', ')}` : ''}{found.stall ? ` · ${found.stall}` : ''}{found.pin ? ' · exact location on the map' : ''}. Details filled in: check them below.
+        <p className="mk-ride-seller ok">✅ <b>{found.shopName || found.name}</b> is on <KapuName />{found.area || found.market ? ` · ${[found.market, found.area].filter(Boolean).join(', ')}` : ''}{found.stall ? ` · ${found.stall}` : ''}{found.pin ? ' · exact location on the map' : ''}. Details filled in: check them below.
           <button type="button" className="os-linkbtn mk-ride-notthis" onClick={() => clearFilled({ sellerPhone: '' })}>✕ Not this seller: clear</button>
         </p>
       )}
-      {!looking && found && !found.found && validPhone(seller.sellerPhone) && <p className="mk-ride-seller">{found.login ? 'Log in to find the seller by their number, or fill in the details below.' : 'This number isn’t a seller on Kapu yet: fill in where they are below.'}</p>}
+      {/* the sentence sits in one <span> so the flex gap of .mk-ride-seller doesn't split it around the coloured name */}
+      {!looking && found && !found.found && validPhone(seller.sellerPhone) && <p className="mk-ride-seller">{found.login ? 'Log in to find the seller by their number, or fill in the details below.' : <span>This number isn’t a seller on <KapuName /> yet: fill in where they are below.</span>}</p>}
       <div className="mk-ride-items" role="group" aria-label="What did you buy?">
         <span className="mk-ride-items-title">What did you buy{seller.sellerName ? ` from ${seller.sellerName}` : ''}?</span>
         {seller.items.map((item, position) => (
@@ -173,7 +174,7 @@ function SellerBlock({ index, seller, many, points, customer, update, remove, qu
         <label className="os-field"><span>Stall / shop number</span><input value={seller.stall} onChange={set('stall')} maxLength={40} placeholder="e.g. Stall 14, near gate B" /></label>
         <label className="os-field"><span>Seller’s name <em>(optional)</em></span><input value={seller.sellerName} onChange={set('sellerName')} maxLength={80} /></label>
       </div>
-      <button type="button" className="os-btn os-btn-ghost mk-ride-gps" disabled={locating} onClick={pinShop}>{locating ? 'Getting the location…' : seller.pin ? (found?.found && found.pin ? '✅ The seller’s exact location (from Kapu)' : '✅ Shop location added') : '📍 I’m at the shop: use my location'}</button>
+      <button type="button" className="os-btn os-btn-ghost mk-ride-gps" disabled={locating} onClick={pinShop}>{locating ? 'Getting the location…' : seller.pin ? (found?.found && found.pin ? <span>✅ The seller’s exact location (from <KapuName />)</span> : '✅ Shop location added') : '📍 I’m at the shop: use my location'}</button>
       {quotePart && <p className="mk-ride-partprice">{quotePart.inspection ? `Inspection ${priceText(quotePart.inspection)} · ` : ''}delivery {priceText(quotePart.delivery.fee)}{quotePart.goods ? ` · goods ${priceText(quotePart.goods)}` : ''}</p>}
     </fieldset>
   );

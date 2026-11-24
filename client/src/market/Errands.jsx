@@ -117,7 +117,7 @@ export default function Errands() {
       <div className="mk-wrap mk-narrow">
         <div className="mk-errand-hero">
           <h1>Our riders & shopping agents, at your service</h1>
-          <p>No need to buy from a seller on Kapu: book our trained, ID-checked team for your own errands.</p>
+          <p>No need to buy from a seller on <KapuName />: book our trained, ID-checked team for your own errands.</p>
         </div>
         <div className="mk-errand-types">
           {Object.entries(TYPES).filter(([, value]) => !value.retired).map(([key, value]) => (

@@ -33,7 +33,7 @@ export default function InstallApp({ variant = 'footer' }) {
         <section className="os-install-home" aria-label="Get the app">
           <span className="os-install-home-icon" aria-hidden="true"><img src="/icon-192.png" alt="" width="56" height="56" /></span>
           <span className="os-install-home-text">
-            <b>Get the {STORE_INFO.name} app</b>
+            <b>Get the <SiteName light /> app</b>
             <small>Free · opens instantly from your home screen · live order updates</small>
           </span>
           <button type="button" className="os-btn os-btn-brand" onClick={install}>📲 Download</button>
@@ -41,7 +41,7 @@ export default function InstallApp({ variant = 'footer' }) {
       ) : (
         <button type="button" className={`os-install os-install-${variant}`} onClick={install}>
           <span aria-hidden="true">📲</span>
-          <span><b>Get the {STORE_INFO.name} app</b><small>Free · opens instantly from your home screen</small></span>
+          <span><b>Get the <SiteName light /> app</b><small>Free · opens instantly from your home screen</small></span>
         </button>
       )}
       {help && createPortal(
@@ -49,8 +49,8 @@ export default function InstallApp({ variant = 'footer' }) {
           <div className="os-install-sheet" role="dialog" aria-modal="true" aria-label="Install the app">
             <button type="button" className="os-install-backdrop" aria-label="Close" onClick={() => setHelp(null)} />
             <section>
-              <h3>Add {STORE_INFO.name} to your {help === 'desktop' ? 'computer' : 'phone'}</h3>
-              <ol>{steps[help].map((item) => <li key={item}>{item}</li>)}</ol>
+              <h3>Add <SiteName /> to your {help === 'desktop' ? 'computer' : 'phone'}</h3>
+              <ol>{steps[help].map((item) => <li key={item}><TextWithSiteName text={item} /></li>)}</ol>
               <button type="button" className="os-btn os-btn-brand os-block" onClick={() => setHelp(null)}>Got it</button>
             </section>
           </div>

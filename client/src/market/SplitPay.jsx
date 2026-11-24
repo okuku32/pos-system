@@ -133,7 +133,7 @@ function FeeCard({ fee, busy, onRetry }) {
         <span className="mk-split-n">🛡️</span>
         <div>
           <b>Payment verification &amp; inspection</b>
-          <small>Paid to {STORE_INFO.name}: our agent checks each payment reached the seller and the goods match your order</small>
+          <small>Paid to <SiteName />: our agent checks each payment reached the seller and the goods match your order</small>
         </div>
         <span className={`mk-split-badge ${fee.state}`}>{badge} {label}</span>
       </div>
@@ -141,7 +141,7 @@ function FeeCard({ fee, busy, onRetry }) {
         <span>{fee.sellers === 1 ? 'Verification fee' : `${priceText(fee.each)} × ${fee.sellers} sellers`}{fee.inspections ? ` + ${priceText(fee.inspections)} inspection you asked for` : ''}</span>
         <b>{priceText(fee.amount)}</b>
       </div>
-      {fee.state === 'prompted' && <p className="mk-split-note">Enter your M-Pesa PIN on your phone to pay {priceText(fee.amount)} to {STORE_INFO.name}. The sellers come next.</p>}
+      {fee.state === 'prompted' && <p className="mk-split-note">Enter your M-Pesa PIN on your phone to pay {priceText(fee.amount)} to <SiteName />. The sellers come next.</p>}
       {fee.state === 'paid' && <p className="mk-split-note ok">M-Pesa code <b>{fee.receipt}</b></p>}
       {fee.state === 'failed' && (
         <>
@@ -220,7 +220,7 @@ export function SplitPayWait({ checkoutId, initial, phone, onFinished, onCod }) 
         <div><span>Total goods</span><b>{priceText(data.goods)}</b></div>
         {data.onDelivery > 0 && <div><span>Delivery fees (paid on arrival)</span><b>{priceText(data.onDelivery)}</b></div>}
         <div><span>{data.sellers === 1 ? `To ${data.parts[0].seller.name}` : 'To the sellers'}</span><b>{priceText(data.sellersNow ?? data.payNow)}</b></div>
-        {data.fee && <div><span>Verification &amp; inspection ({STORE_INFO.name})</span><b>{priceText(data.fee.amount)}</b></div>}
+        {data.fee && <div><span>Verification &amp; inspection (<SiteName />)</span><b>{priceText(data.fee.amount)}</b></div>}
         <div className="ok"><span>Paid so far</span><b>{money(paid)}</b></div>
         <div className="grand"><span>Total</span><b>{priceText(data.total)}</b></div>
       </div>

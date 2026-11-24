@@ -101,7 +101,7 @@ function PhotoRequestSheet({ seller, onClose }) {
               <label>Your budget (optional)<input type="number" min={1} value={form.budget} onChange={set('budget')} placeholder="KSh" /></label>
             </div>
             <label>Anything else? (optional)<textarea value={form.note} onChange={set('note')} maxLength={500} rows={2} placeholder="Colour, size, brand, where you saw it in the shop…" /></label>
-            <p className="mk-hint">🔒 Only {seller.name} and the {`Kapu`} team see your photos.</p>
+            <p className="mk-hint">🔒 Only {seller.name} and the <KapuName /> team see your photos.</p>
             <button className="os-btn os-btn-brand os-btn-lg os-block" disabled={busy}>{busy ? 'Sending…' : `Send to ${seller.name}`}</button>
           </form>
         )}

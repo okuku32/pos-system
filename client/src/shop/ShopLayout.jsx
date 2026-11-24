@@ -245,12 +245,12 @@ function Footer() {
           <button className="os-linkbtn" onClick={() => openWhatsApp()}>WhatsApp us</button>
           <Link to="/help#safety">Stay safe</Link>
           <Link to="/verify-centres">Safe deal: verification centres</Link>
-          <Link to="/reviews">⭐ Reviews: rate Kapu</Link>
+          <Link to="/reviews">⭐ Reviews: rate <KapuName /></Link>
           {customer ? <Link to="/account">My account</Link> : <Link to="/signup">Create an account</Link>}
         </nav>
       </div>
       <div className="os-footer-bottom">
-        <small>© {new Date().getFullYear()} {STORE_INFO.name}. All rights reserved.</small>
+        <small>© {new Date().getFullYear()} <SiteName />. All rights reserved.</small>
         <button className="os-linkbtn" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Back to top ↑</button>
       </div>
     </footer>

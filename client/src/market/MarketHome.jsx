@@ -68,7 +68,7 @@ function CustomersSay() {
             </Link>
           ))}
         </div>
-      ) : <p className="os-muted">Bought or sold on {STORE_INFO.name}? <Link to="/reviews#rate">Be the first to rate us</Link>.</p>}
+      ) : <p className="os-muted">Bought or sold on <SiteName />? <Link to="/reviews#rate">Be the first to rate us</Link>.</p>}
     </section>
   );
 }
@@ -168,7 +168,7 @@ export default function MarketHome() {
       <section className="mk-hero">
         <div className="mk-hero-inner">
           <p className="mk-hero-tagline">Sell fast · Buy smart · Pay safe</p>
-          <h1>Buy and sell <span>seamlessly</span> with Kapu</h1>
+          <h1>Buy and sell <span>seamlessly</span> with <KapuName light /></h1>
           <div ref={heroSearch}><SearchBox big /></div>
         </div>
       </section>
@@ -176,7 +176,7 @@ export default function MarketHome() {
       {/* the market floor, straight under the search: boosted ads and the biggest price drops */}
       <div className="mk-wrap mk-top-deals">
         {!home && <Rail id="mk-top-h" title="🔥 Hot right now" loading />}
-        {home?.deals?.length > 0 && <Rail id="mk-deals-h" title="🏷️ Best deals" sub="The biggest discounts on Kapu right now" more={{ to: '/market/search?sort=discount', text: 'See all deals →' }} ads={home.deals} />}
+        {home?.deals?.length > 0 && <Rail id="mk-deals-h" title="🏷️ Best deals" sub={<>The biggest discounts on <KapuName /> right now</>} more={{ to: '/market/search?sort=discount', text: 'See all deals →' }} ads={home.deals} />}
         {(home?.featured?.length > 0 || home?.deals?.some((ad) => ad.topDeal)) && <Rail id="mk-feat-h" title="🔥 Featured" sub="Promoted ads and today’s top deals" more={{ to: '/market/sell', text: 'Feature your ad →' }} ads={featuredRow(home)} />}
         {home && !home.featured?.length && !home.deals?.length && home.latest?.length > 0 && <Rail id="mk-just-h" title="🆕 Just listed" more={{ to: '/market/search?sort=newest', text: 'See all →' }} ads={home.latest.slice(0, 10)} />}
       </div>
@@ -330,7 +330,7 @@ export default function MarketHome() {
         <section className="mk-sell-cta">
           <div>
             <h2>Got something to sell?</h2>
-            <p>Post it free in under 2 minutes. Buyers find it on {STORE_INFO.name} and on Google, then chat with you, or order and pay online.</p>
+            <p>Post it free in under 2 minutes. Buyers find it on <SiteName /> and on Google, then chat with you, or order and pay online.</p>
           </div>
           <Link to="/market/sell" className="os-btn os-btn-brand os-btn-lg">+ Post a free ad</Link>
         </section>

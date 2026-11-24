@@ -467,7 +467,7 @@ export default function Checkout() {
                 <button type="button" className="os-btn os-btn-brand" disabled={!validPhone(phone)} onClick={retry}>📲 Send to this number</button>
               </details>
               <div className="mk-pay-spinner"><span className="page-spinner" /> Waiting for M-Pesa…</div>
-              <small className="os-muted">Your money is held by {STORE_INFO.name} and passed to the seller only after delivery.</small>
+              <small className="os-muted">Your money is held by <SiteName /> and passed to the seller only after delivery.</small>
             </>
           )}
           {failed && (
@@ -550,7 +550,7 @@ export default function Checkout() {
               {STORE_INFO.fieldwork?.riderEnabled !== false && (
                 <label className={`${method === 'rider' ? 'on' : ''} mk-choice-rider`} aria-disabled={!!here && !!extras && !canRider}>
                   <input type="radio" name="method" checked={method === 'rider'} disabled={riderBusy || (!!here && !!extras && !canRider)} onChange={chooseRider} />
-                  <span>🏍️ <b>{`${STORE_INFO.name} rider`}</b><span className="mk-trusted">✔ Trusted &amp; trained: ID-checked and trained by our team</span><small>{riderBusy ? 'Finding you…' : !here ? 'A rider near the shop brings it to your door. Tap to price it with your location' : !extras ? 'Checking…' : canRider ? `${priceText(groups.reduce((sum, group) => sum + (riderFor(group)?.fee || 0), 0))}, about ${Math.max(...groups.map((group) => riderFor(group).km))} km${groups.every((group) => riderFor(group).byRoad) ? ` by road, ~${Math.max(...groups.map((group) => riderFor(group).minutes))} min` : ''}. Priced by distance and time, like Uber / Bolt; paid to the rider on delivery, not now.` : (groups.map((group) => riderFor(group)?.reason).find(Boolean) || 'Not available here')}</small></span>
+                  <span>🏍️ <b><SiteName /> rider</b><span className="mk-trusted">✔ Trusted &amp; trained: ID-checked and trained by our team</span><small>{riderBusy ? 'Finding you…' : !here ? 'A rider near the shop brings it to your door. Tap to price it with your location' : !extras ? 'Checking…' : canRider ? `${priceText(groups.reduce((sum, group) => sum + (riderFor(group)?.fee || 0), 0))}, about ${Math.max(...groups.map((group) => riderFor(group).km))} km${groups.every((group) => riderFor(group).byRoad) ? ` by road, ~${Math.max(...groups.map((group) => riderFor(group).minutes))} min` : ''}. Priced by distance and time, like Uber / Bolt; paid to the rider on delivery, not now.` : (groups.map((group) => riderFor(group)?.reason).find(Boolean) || 'Not available here')}</small></span>
                 </label>
               )}
               {safeShown && (
@@ -710,7 +710,7 @@ export default function Checkout() {
             <div className="mk-choice" onChange={() => setTimeout(() => bringUp(paySection), 80)}>
               <label className={pay === 'mpesa' ? 'on' : ''}>
                 <input type="radio" name="pay" checked={pay === 'mpesa'} onChange={() => setPay('mpesa')} />
-                <span><span className="mk-mpesa">M-PESA</span> <b>Pay now with M-Pesa</b><small>{manySellers ? `One M-Pesa payment to ${STORE_INFO.name} for all ${groups.length} sellers: goods + delivery. Held safely until delivery.` : `Paid straight to the seller’s Till, Paybill or Pochi la Biashara.`}</small></span>
+                <span><span className="mk-mpesa">M-PESA</span> <b>Pay now with M-Pesa</b><small>{manySellers ? <>One M-Pesa payment to <SiteName /> for all {groups.length} sellers: goods + delivery. Held safely until delivery.</> : `Paid straight to the seller’s Till, Paybill or Pochi la Biashara.`}</small></span>
               </label>
               <label className={pay === 'cod' ? 'on' : ''} aria-disabled={paidInspect || method === 'courier' || method === 'verified'}>
                 <input type="radio" name="pay" checked={pay === 'cod'} disabled={paidInspect || method === 'courier' || method === 'verified'} onChange={() => setPay('cod')} />
@@ -783,7 +783,7 @@ export default function Checkout() {
                 {method === 'walk' && walkFor(group)?.ok && <div className="mk-sum-line fee"><span>🚶 Walking delivery ({walkFor(group).km} km){walkFor(group).fee > 0 ? ' · paid on delivery' : ''}</span><b>{walkFor(group).fee ? priceText(walkFor(group).fee) : walkFor(group).free === 'after-sale' ? 'Free (after-sale)' : 'Free'}</b></div>}
               </div>
             ))}
-            {splitFee > 0 && <div className="mk-sum-line fee mk-sum-splitfee"><span>🛡️ Payment verification &amp; inspection by our agent <small>paid to {STORE_INFO.name}; the goods are paid straight to the seller</small></span><b>{priceText(splitFee)}</b></div>}
+            {splitFee > 0 && <div className="mk-sum-line fee mk-sum-splitfee"><span>🛡️ Payment verification &amp; inspection by our agent <small>paid to <SiteName />; the goods are paid straight to the seller</small></span><b>{priceText(splitFee)}</b></div>}
             <div className="mk-sum-total"><span>Total</span><b>{priceText(total)}</b></div>
             {onDelivery > 0 && pay === 'mpesa' && (
               <div className="mk-sum-split">
@@ -846,7 +846,7 @@ function PayeeCard({ group, payTo, pay, method, manySellers, direct, riderFee, i
   const when = pay === 'cod' ? 'On delivery' : pay === 'pole' ? 'Bit by bit (Lipa Pole Pole)' : direct ? 'Now, with M-Pesa' : 'Now, with M-Pesa (held by us)';
   const how = pay === 'cod'
     ? (payTo?.method ? `${PAY_METHOD[payTo.method]} or cash` : 'Cash or M-Pesa (the seller shares their number)')
-    : held ? `${STORE_INFO.name} holds it safely, then pays ${seller}${payTo?.method ? ` by ${PAY_METHOD[payTo.method]}` : ''} after delivery`
+    : held ? <><SiteName /> holds it safely, then pays {seller}{payTo?.method ? ` by ${PAY_METHOD[payTo.method]}` : ''} after delivery</> // JSX, so the name can be coloured
       : payTo?.method ? PAY_METHOD[payTo.method] : 'M-Pesa';
   return (
     <div className="mk-payee" aria-label={`How ${seller} is paid`}>
@@ -868,7 +868,7 @@ function PayeeCard({ group, payTo, pay, method, manySellers, direct, riderFee, i
         <div><dt>When</dt><dd>{when}</dd></div>
         <div className="mk-payee-amount"><dt>To {seller}</dt><dd><b>{priceText(goods)}</b><small>{sellerDelivery ? 'items + their delivery fee' : 'for the items'}</small></dd></div>
         {riderFee > 0 && <div><dt>To our rider</dt><dd><b>{priceText(riderFee)}</b><small>delivery fee, paid on delivery</small></dd></div>}
-        {inspectFee > 0 && <div><dt>Inspection</dt><dd><b>{priceText(inspectFee)}</b><small>by our {inspectBy}, paid now to {STORE_INFO.name} (we pay the {inspectBy})</small></dd></div>}
+        {inspectFee > 0 && <div><dt>Inspection</dt><dd><b>{priceText(inspectFee)}</b><small>by our {inspectBy}, paid now to <SiteName /> (we pay the {inspectBy})</small></dd></div>}
       </dl>
       {!manySellers && held && pay === 'mpesa' && <p className="mk-payee-note">🔒 Your money is released to {seller} only after you get your order.</p>}
     </div>

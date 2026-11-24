@@ -36,7 +36,7 @@ export default function AdminReviews() {
   return (
     <div>
       <div className="page-head"><h2>Reviews of us</h2></div>
-      <p className="muted" style={{ marginTop: -6 }}>What buyers and sellers say about {`Kapu`} on the public Reviews page. Reply to show you listen; hide only abuse, spam or personal details.</p>
+      <p className="muted" style={{ marginTop: -6 }}>What buyers and sellers say about <KapuName /> on the public Reviews page. Reply to show you listen; hide only abuse, spam or personal details.</p>
       {data && (
         <div className="stats-grid" style={{ marginBottom: 12 }}>
           <div className="stat"><small>Average</small><b>{data.count ? `${data.avg.toFixed(1)} ★` : '–'}</b><small>{data.count} public reviews</small></div>

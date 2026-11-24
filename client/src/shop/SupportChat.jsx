@@ -179,7 +179,7 @@ export default function SupportChat() {
           <div className="os-chat-agent">
             <span className="os-chat-avatar">🛍️<i /></span>
             <div>
-              <b>{STORE_INFO.name} support</b>
+              <b><SiteName light /> support</b>
               <small>{STORE_INFO.location ? `📍 ${STORE_INFO.location} · ` : ''}we usually reply within minutes</small>
             </div>
           </div>
@@ -189,7 +189,7 @@ export default function SupportChat() {
         {!thread ? (
           <form className="os-chat-body os-chat-start" onSubmit={start}>
             <div className="os-chat-bubble staff intro">
-              Hi{customer ? ` ${firstName(customer.name)}` : ''} 👋 Karibu {STORE_INFO.name}! Ask us anything about buying, selling, an order, a payment or an ad.
+              Hi{customer ? ` ${firstName(customer.name)}` : ''} 👋 Karibu <SiteName />! Ask us anything about buying, selling, an order, a payment or an ad.
               You don’t need an account. Prefer WhatsApp? <button type="button" className="os-linkbtn" onClick={() => { setOpen(false); openWhatsApp(); }}>Message us there</button>.
             </div>
             <div className="os-chat-topics" role="radiogroup" aria-label="What is it about?">
@@ -226,7 +226,7 @@ export default function SupportChat() {
               {thread.messages.map((message) => (
                 <div key={message.id} className={`os-chat-row ${message.from}`}>
                   <div className={`os-chat-bubble ${message.from} ${message.pending ? 'pending' : ''}`}>
-                    {message.from === 'staff' && <b className="os-chat-name">{message.staffName || STORE_INFO.name}</b>}
+                    {message.from === 'staff' && <b className="os-chat-name">{message.staffName || <SiteName />}</b>}
                     <span>{message.text}</span>
                     <small>{message.pending ? 'Sending…' : fmt(message.at)}</small>
                   </div>

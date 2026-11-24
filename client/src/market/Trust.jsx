@@ -73,7 +73,7 @@ export function SellerStats({ s: seller }) {
       <li><Stars value={seller.rating?.avg || 0} count={seller.rating?.count || 0} /></li>
       <li>✅ {seller.completedSales || 0} sale{seller.completedSales === 1 ? '' : 's'} completed</li>
       {seller.responseRate != null && <li>💬 Replies to {seller.responseRate}% of chats{seller.responseMinutes != null ? `, usually ${responseText(seller.responseMinutes)}` : ''}</li>}
-      <li>📅 On {STORE_INFO.name} since {new Date(seller.memberSince).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}</li>
+      <li>📅 On <SiteName /> since {new Date(seller.memberSince).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}</li>
     </ul>
   );
 }
@@ -166,7 +166,7 @@ export function AgreeSheet({ conversationId, listing, onClose }) {
   return (
     <Sheet title="🤝 Agree a price" onClose={onClose}>
       <form onSubmit={send} className="mk-sheet-body">
-        <p className="os-muted">Agreed on a price in the chat or on the phone? Set it here. The buyer gets an <b>Add to cart</b> button at this price, valid for 48 hours, and pays through {STORE_INFO.name} (safe mobile payment guaranteed, or cash on delivery).</p>
+        <p className="os-muted">Agreed on a price in the chat or on the phone? Set it here. The buyer gets an <b>Add to cart</b> button at this price, valid for 48 hours, and pays through <SiteName /> (safe mobile payment guaranteed, or cash on delivery).</p>
         <div className="mk-form-grid">
           <label className="os-field">
             <span>Agreed price per item (KSh)</span>
@@ -363,7 +363,7 @@ export function PriceGuide({ listing, attrs, compact }) {
         <i />
         <span>{priceText(group.high)}</span>
       </div>
-      <small>Typical asking price on {STORE_INFO.name}, from {group.count} similar ads (median {priceText(group.median)}).{where && !compact ? ` This ad is ${where} the usual range.` : ''}</small>
+      <small>Typical asking price on <SiteName />, from {group.count} similar ads (median {priceText(group.median)}).{where && !compact ? ` This ad is ${where} the usual range.` : ''}</small>
     </div>
   );
 }

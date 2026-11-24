@@ -86,7 +86,7 @@ export default function ItemSuggest({ value, onChange, onPickItem, onPickAd, pla
           {empty && <li className="mk-isug-empty" role="presentation">{value.trim() ? `Nothing like “${value.trim()}” listed by ${data.seller?.name || sellerName || 'this seller'}: just type what you bought.` : `${data.seller?.name || sellerName || 'This seller'} hasn’t listed products yet: type what you bought.`}</li>}
           {options.map((option, index) => {
             const head = index === 0 || options[index - 1].kind !== option.kind;
-            const title = option.kind === 'ad' ? (sellerId ? 'Their products on Kapu' : 'On Kapu: we’ll fill in the seller') : sellerId ? 'Other things they sell' : 'Items';
+            const title = option.kind === 'ad' ? (sellerId ? <>Their products on <KapuName /></> : <>On <KapuName />: we’ll fill in the seller</>) : sellerId ? 'Other things they sell' : 'Items';
             const rows = [];
             if (head) rows.push(<li key={`h${option.kind}`} className="mk-isug-head" role="presentation">{title}</li>);
             if (option.kind === 'item') {

@@ -168,7 +168,7 @@ export default function Deliveries() {
     <div className="mk"><div className="mk-wrap mk-deliveries">
         <section className="mk-work-hero">
           <h1>📦 My deliveries</h1>
-          <p>Everything {STORE_INFO.name}’s riders and on-foot delivery agents bring you, and where it is right now: packed, dispatched, on the way, arrived, delivered.</p>
+          <p>Everything <SiteName />’s riders and on-foot delivery agents bring you, and where it is right now: packed, dispatched, on the way, arrived, delivered.</p>
         </section>
 
         <section className="mk-delivery-stats" aria-label="Delivery summary">

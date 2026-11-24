@@ -20,7 +20,7 @@ export default function Social({ label = true }) {
   if (!links.length) return null;
   return (
     <div className="os-social">
-      {label && <span className="os-social-label">Follow {STORE_INFO.name}</span>}
+      {label && <span className="os-social-label">Follow <SiteName /></span>}
       <div className="os-social-icons">
         {links.map((link) => (
           <a key={link} href={STORE_INFO.social[link]} target="_blank" rel="noopener noreferrer" className={`os-social-${link}`} aria-label={`${STORE_INFO.name} on ${ICONS[link][0]}`} title={ICONS[link][0]}>

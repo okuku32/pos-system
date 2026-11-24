@@ -79,7 +79,7 @@ export default function WhatsAppSupport() {
               <button className="os-wa-back" onClick={() => setOpen(false)} aria-label="Close">←</button>
               <span className="os-wa-avatar">{STORE_INFO.name.slice(0, 1)}</span>
               <div className="os-wa-title">
-                <b>{STORE_INFO.name}</b>
+                <b><SiteName light /></b>
                 <small>Business account · usually replies within minutes</small>
               </div>
             </header>
@@ -87,7 +87,7 @@ export default function WhatsAppSupport() {
             <div className="os-wa-body">
               <div className="os-wa-day">Today</div>
               <div className="os-wa-msg shop">
-                Karibu {STORE_INFO.name}! 👋 How can we help you today?
+                Karibu <SiteName />! 👋 How can we help you today?
                 <small>{time()}</small>
               </div>
               {thread.map((item, index) => (

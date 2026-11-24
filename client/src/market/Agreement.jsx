@@ -30,17 +30,17 @@ export function PolePolePolicy() {
   return (
     <div className="os-page mk-policy">
       <h1>🐢 Lipa Pole Pole</h1>
-      <p className="mk-lead">Pay for what you need bit by bit. There are two ways to do it on {STORE_INFO.name}:</p>
+      <p className="mk-lead">Pay for what you need bit by bit. There are two ways to do it on <SiteName />:</p>
       <div className="mk-policy-ways">
         <section className="mk-box">
           <h2>1. At checkout (protected)</h2>
           <p>For phones, TVs, laptops, furniture and more from sellers who offer it. Choose <b>Lipa Pole Pole</b> next to M-Pesa and cash, pay a deposit with M-Pesa and the item is reserved for you. Pay the rest any time with M-Pesa; it’s delivered when fully paid.</p>
-          <p className="mk-green">🛡️ Your money is held by {STORE_INFO.name} (Lipa Salama) and refunded if the plan is cancelled.</p>
+          <p className="mk-green">🛡️ Your money is held by <SiteName /> (Lipa Salama) and refunded if the plan is cancelled.</p>
         </section>
         <section className="mk-box">
           <h2>2. Sale agreement (nearby furniture)</h2>
           <p>When the buyer and seller live in the same county, they can agree directly: open the chat about a furniture ad and tap <b>📝 Lipa Pole Pole agreement</b>. Fill in both people’s details, the agreed price, the deposit, the balance and the deadline. The other person accepts it in the app, and payments are recorded as they’re made. The buyer can take the item now if the seller agrees.</p>
-          <p className="mk-err-text">⚠️ Money paid directly to the seller is not held by {STORE_INFO.name}.</p>
+          <p className="mk-err-text">⚠️ Money paid directly to the seller is not held by <SiteName />.</p>
         </section>
       </div>
       <section className="mk-box">
@@ -231,7 +231,7 @@ export function AgreementPage() {
         <article className="mk-agree-doc">
           <header>
             <div>
-              <small>{STORE_INFO.name} · Lipa Pole Pole</small>
+              <small><SiteName /> · Lipa Pole Pole</small>
               <h1>Sale agreement</h1>
               <span>No. <b>{agreement.agreementNo}</b> · Date of agreement: <b>{fmtDate(agreement.agreementDate)}</b></span>
             </div>
