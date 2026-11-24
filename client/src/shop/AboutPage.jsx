@@ -185,16 +185,9 @@ export default function AboutPage({ launch = false, onExplore }) {
       <section className="os-about-hero">
         <div className="os-about-wrap">
           <span className="os-about-eyebrow">{launch ? <>Welcome to <SiteName light /> · launching soon</> : <>About <SiteName light /></>}</span>
-          {/* the headline sells the outcome (anything, delivered, safely), not the mechanics of a marketplace */}
-          <h1>Everything Kenya sells, <em>delivered safely</em> to your door.</h1>
-          <p className="os-about-lead">A phone from Luthuli Avenue, a sofa from Gikomba, a plot in Kitengela or fresh sukuma from the mama mboga next door: find it on <SiteName light />, pay with M-Pesa, and your money stays protected until the goods are in your hands. No more paying for things that never arrive.</p>
-          {/* four reasons to join, scannable in two seconds */}
-          <ul className="os-about-hero-points">
-            <li><span aria-hidden="true">🔒</span>Your money is held safely until you receive your order</li>
-            <li><span aria-hidden="true">🏍️</span>Trained, ID-checked riders with live tracking to your door</li>
-            <li><span aria-hidden="true">🆓</span>Sellers advertise free and reach buyers in all 47 counties</li>
-            <li><span aria-hidden="true">💳</span>Lipa Pole Pole: take it home now, pay bit by bit</li>
-          </ul>
+          {/* kept short on purpose: one promise and one line; the details come further down the page */}
+          <h1>Your online marketplace that <em>guarantees quality</em> for your money, time and product.</h1>
+          <p className="os-about-lead">We are here to make your online shopping seamless, safe and timely.</p>
           <p className="os-about-kenyan"><svg className="os-about-flag" viewBox="0 0 30 20" width="30" height="20" aria-hidden="true"><rect width="30" height="20" rx="2" fill="#fff"/><rect width="30" height="5.6" fill="#111"/><rect y="7" width="30" height="6" fill="#bb0000"/><rect y="14.4" width="30" height="5.6" rx="0" fill="#006600"/><ellipse cx="15" cy="10" rx="3.2" ry="6.4" fill="#bb0000" stroke="#111" strokeWidth="0.8"/><ellipse cx="15" cy="10" rx="1" ry="4.4" fill="#fff"/></svg>By Kenyans, for Kenyans, with Kenyans.</p>
           <p className="os-about-tagline">{STORE_INFO.tagline}</p>
           {launch ? (
