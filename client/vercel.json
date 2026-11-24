@@ -7,11 +7,11 @@
   "rewrites": [
     {
       "source": "/",
-      "destination": "https://pos-system-13.onrender.com/"
+      "destination": "https://kapumarketplace.onrender.com/"
     },
     {
       "source": "/:path*",
-      "destination": "https://pos-system-13.onrender.com/:path*"
+      "destination": "https://kapumarketplace.onrender.com/:path*"
     }
   ],
   "headers": [
