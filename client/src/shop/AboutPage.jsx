@@ -185,11 +185,8 @@ export default function AboutPage({ launch = false, onExplore }) {
       <section className="os-about-hero">
         <div className="os-about-wrap">
           <span className="os-about-eyebrow">{launch ? <>Welcome to <SiteName light /> · launching soon</> : <>About <SiteName light /></>}</span>
-          {/* kept short on purpose: one promise and one line; the details come further down the page */}
+          {/* kept to the one promise on purpose, straight into the buttons; the details come further down the page */}
           <h1>Your online marketplace that <em>guarantees quality</em> for your money, time and product.</h1>
-          <p className="os-about-lead">We are here to make your online shopping seamless, safe and timely.</p>
-          <p className="os-about-kenyan"><svg className="os-about-flag" viewBox="0 0 30 20" width="30" height="20" aria-hidden="true"><rect width="30" height="20" rx="2" fill="#fff"/><rect width="30" height="5.6" fill="#111"/><rect y="7" width="30" height="6" fill="#bb0000"/><rect y="14.4" width="30" height="5.6" rx="0" fill="#006600"/><ellipse cx="15" cy="10" rx="3.2" ry="6.4" fill="#bb0000" stroke="#111" strokeWidth="0.8"/><ellipse cx="15" cy="10" rx="1" ry="4.4" fill="#fff"/></svg>By Kenyans, for Kenyans, with Kenyans.</p>
-          <p className="os-about-tagline">{STORE_INFO.tagline}</p>
           {launch ? (
             <>
               <div className="os-about-ctas">

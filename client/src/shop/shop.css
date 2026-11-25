@@ -963,7 +963,8 @@ i.os-note-sw { font-size: 15px; font-weight: 600; }
 .os-about-wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
 .os-about-hero { position: relative; overflow: hidden; color: #fff; background: radial-gradient(circle at 85% 20%, rgba(255, 90, 31, 0.45), transparent 45%), radial-gradient(circle at 10% 90%, rgba(255, 154, 77, 0.25), transparent 40%), linear-gradient(160deg, #14171f 0%, #1f2430 60%, #2a1a12 100%); padding: 72px 0 96px; }
 .os-about-eyebrow { display: inline-block; padding: 6px 14px; border-radius: 999px; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.18); font-weight: 700; font-size: 15px; letter-spacing: 0.02em; }
-.os-about-hero h1 { font-size: clamp(34px, 5.4vw, 60px); line-height: 1.05; letter-spacing: -0.02em; margin: 18px 0 16px; max-width: 760px; }
+/* the headline leads straight into the buttons (no lead / tagline lines any more): the space they used to give */
+.os-about-hero h1 { font-size: clamp(34px, 5.4vw, 60px); line-height: 1.05; letter-spacing: -0.02em; margin: 18px 0 30px; max-width: 760px; }
 .os-about-hero h1 em { font-style: normal; color: #ff8a3d; }
 .os-about-lead { font-size: clamp(16px, 1.8vw, 19px); line-height: 1.6; color: #d7dbe3; max-width: 680px; margin: 0 0 10px; }
 /* Lucide line icons on the About page: brand orange inside their tiles, centred like the emojis they replaced */
