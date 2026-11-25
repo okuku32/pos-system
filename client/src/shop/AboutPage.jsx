@@ -186,7 +186,8 @@ export default function AboutPage({ launch = false, onExplore }) {
         <div className="os-about-wrap">
           <span className="os-about-eyebrow">{launch ? <>Welcome to <SiteName light /> · launching soon</> : <>About <SiteName light /></>}</span>
           {/* kept to the one promise on purpose, straight into the buttons; the details come further down the page */}
-          <h1>Your online marketplace that <em>guarantees quality</em> for your money, time and product.</h1>
+          {/* "Soko mkononi" = the market in your hand; 🤳 is the emoji of a hand holding a phone */}
+          <h1><em>Soko mkononi</em> <span className="os-about-hero-emoji" role="img" aria-label="a hand holding a phone">🤳</span></h1>
           {launch ? (
             <>
               <div className="os-about-ctas">

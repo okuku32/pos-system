@@ -79,6 +79,10 @@
       .bw-eyebrow { display: inline-block; padding: 6px 14px; border-radius: 999px; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.18); font-weight: 700; font-size: 15px; letter-spacing: 0.02em; }
       .bw h1 { font-size: clamp(34px, 5.4vw, 60px); line-height: 1.05; letter-spacing: -0.02em; margin: 18px 0 30px; max-width: 760px; font-weight: 700; letter-spacing: -0.015em; }
       .bw h1 em { font-style: normal; color: #ff8a3d; }
+      /* same as .os-about-hero-emoji and .os-logo-bike in shop.css, so nothing jumps when the app takes over */
+      .bw-emoji { display: inline-block; font-size: 0.85em; line-height: 1; }
+      .boot-bike { font-size: 21px; line-height: 1; margin-left: -4px; }
+      html.admin .boot-bike { display: none; }
       .bw-lead { font-size: clamp(16px, 1.8vw, 19px); line-height: 1.65; color: #d7dbe3; max-width: 680px; margin: 0 0 10px; }
       .bw-kenyan { display: inline-flex; align-items: center; gap: 10px; margin: 0 0 12px; padding: 8px 14px; border-radius: 14px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.22); font-weight: 700; font-size: 16px; line-height: 1.65; letter-spacing: 0.01em; }
       .bw-tagline { font-weight: 800; color: #ffb48a; margin: 0 0 26px; line-height: 1.65; letter-spacing: 0.01em; }
@@ -116,7 +120,7 @@
     </style>
   </head>
   <body>
-    <div id="root"><div class="boot" aria-label="Loading"><div class="boot-bar"><span class="boot-logo"></span><span class="boot-name"><span class="k1">K</span><span class="k2">a</span><span class="k3">p</span><span class="k4">u</span></span></div><div class="boot-spin"></div><div class="bw"><div class="bw-bar"><span><span class="bw-dot"></span><b>Launching soon.</b> Join now: be among the first buyers and sellers on Kapu.</span><a href="/signup">Join free →</a></div><section class="bw-hero"><div class="bw-wrap"><span class="bw-eyebrow">Welcome to Kapu · launching soon</span><h1>Your online marketplace that <em>guarantees quality</em> for your money, time and product.</h1><div class="bw-ctas"><a class="bw-brand" href="/signup">Join free before launch</a><a class="bw-light" href="/signup?as=seller">I sell: open my shop early</a><a class="bw-ghost" href="/market/search">Explore the marketplace</a></div></div></section></div></div></div>
+    <div id="root"><div class="boot" aria-label="Loading"><div class="boot-bar"><span class="boot-logo"></span><span class="boot-bike" aria-hidden="true">🛵</span><span class="boot-name"><span class="k1">K</span><span class="k2">a</span><span class="k3">p</span><span class="k4">u</span></span></div><div class="boot-spin"></div><div class="bw"><div class="bw-bar"><span><span class="bw-dot"></span><b>Launching soon.</b> Join now: be among the first buyers and sellers on Kapu.</span><a href="/signup">Join free →</a></div><section class="bw-hero"><div class="bw-wrap"><span class="bw-eyebrow">Welcome to Kapu · launching soon</span><h1><em>Soko mkononi</em> <span class="bw-emoji" role="img" aria-label="a hand holding a phone">🤳</span></h1><div class="bw-ctas"><a class="bw-brand" href="/signup">Join free before launch</a><a class="bw-light" href="/signup?as=seller">I sell: open my shop early</a><a class="bw-ghost" href="/market/search">Explore the marketplace</a></div></div></section></div></div></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

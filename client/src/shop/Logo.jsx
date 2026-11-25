@@ -14,6 +14,8 @@ export default function Logo({ size = 34, light = false }) {
         <path d="M10.4 22.2h19.2M11.3 26.6h17.4" stroke="var(--os-brand)" strokeOpacity=".55" strokeWidth="2" />
       </svg>
       )}
+      {/* our own basket only (not a shop's custom logo): the rider beside it says we deliver to the door (last mile) */}
+      {!STORE_INFO.logoUrl && isKapu() && <span className="os-logo-bike" role="img" aria-label="with delivery to your door" title="We deliver to your door" style={{ fontSize: Math.round(size * 0.62) }}>🛵</span>}
       <span className={`os-wordmark ${light ? 'light' : ''}`}>
         {isKapu() ? <KapuName light={light} /> : STORE_INFO.name}
       </span>
