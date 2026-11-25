@@ -191,9 +191,10 @@ export default function AboutPage({ launch = false, onExplore }) {
           {launch ? (
             <>
               <div className="os-about-ctas">
-                <Link className="os-btn os-btn-brand os-btn-lg" to="/signup">Join free before launch</Link>
-                <Link className="os-btn os-about-btn-light os-btn-lg" to="/signup?as=seller">I sell: open my shop early</Link>
-                <button type="button" className="os-btn os-about-btn-ghost os-btn-lg" onClick={onExplore}>Explore the marketplace</button>
+                {/* exploring comes first and is the one highlighted button: visitors see the goods before being asked to sign up */}
+                <button type="button" className="os-btn os-btn-brand os-btn-lg" onClick={onExplore}>Explore the marketplace</button>
+                <Link className="os-btn os-about-btn-light os-btn-lg" to="/signup">Join free before launch</Link>
+                <Link className="os-btn os-about-btn-ghost os-btn-lg" to="/signup?as=seller">I sell: open my shop early</Link>
               </div>
               <p className="os-launch-note">Free to join · No card needed · Already a member? <Link to="/login">Log in</Link></p>
             </>
