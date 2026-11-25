@@ -350,12 +350,24 @@ exports.aiSearch = asyncHandler(async (req, res) => {
     const close = words.length ? currentRunSearchResult.items.filter((item) => hits(item) === words.length || sameKind(item)) : currentRunSearchResult.items;
     if (close.length) outside = { items: close.slice(0, 3), total: close.length };
   }
+  // 🤖 structured results: Claude picks the best of the ads the server found (it only sees their public facts and can
+  // only reorder them; ids it didn't get are dropped by zod, see market/aiGuard.js). Without a key: the normal order
+  const cheapestExact = sort === 'price-asc' && runSearchResult.items[0]?.match === 'exact' ? runSearchResult.items[0] : null; // before any reordering
+  const picks = await ai.pickResults(text, understood, runSearchResult.items);
+  if (picks?.results.length) {
+    const reasonById = new Map(picks.results.map((pick, rank) => [pick.id, { reason: pick.reason, rank }]));
+    const picked = runSearchResult.items.filter((item) => reasonById.has(String(item._id)))
+      .sort((first, second) => reasonById.get(String(first._id)).rank - reasonById.get(String(second._id)).rank)
+      .map((item) => ({ ...item, aiReason: reasonById.get(String(item._id)).reason }));
+    runSearchResult.items = [...picked, ...runSearchResult.items.filter((item) => !reasonById.has(String(item._id)))]; // nothing found is hidden
+  }
   const prices = runSearchResult.items.map((item) => item.price).filter((item) => item > 0);
   const link = new URLSearchParams(Object.entries({ q: understood.terms, county: understood.county, minPrice: understood.minPrice || '', maxPrice: understood.maxPrice || '', sort }).filter(([, value]) => value));
   res.json({
     q: text, engine: understood.engine, mode: 'search', pages: understood.pages || [],
     understood: { terms: understood.terms, category: meant?.category || '', categoryName: meant?.category ? [getCategory(meant.category)?.name, meant.sub ? getSub(meant.category, meant.sub)?.name : ''].filter(Boolean).join(' › ') : '', minPrice: understood.minPrice, maxPrice: understood.maxPrice, sort: understood.sort, county: understood.county, summary: ai.describe(understood), ...(widened ? { widened: true } : {}) },
-    total: runSearchResult.total, exact: runSearchResult.exact, items: runSearchResult.items, cheapest: sort === 'price-asc' && runSearchResult.items[0]?.match === 'exact' ? runSearchResult.items[0] : null,
+    total: runSearchResult.total, exact: runSearchResult.exact, items: runSearchResult.items, cheapest: cheapestExact,
+    ...(picks?.results.length ? { ai: { summary: picks.summary, picks: picks.results.length } } : {}),
     range: prices.length ? { min: Math.min(...prices), max: Math.max(...prices) } : null,
     outside, link: `${meant?.category && !widened ? `/market/${meant.category}${meant.sub ? `/${meant.sub}` : ''}` : '/market/search'}?${link}`,
   });

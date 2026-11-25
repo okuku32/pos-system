@@ -13,7 +13,7 @@
     "test:security": "node --test --test-concurrency=1 tests/security.test.js",
     "test:auth": "node --test --test-concurrency=1 tests/auth.test.js",
     "test:unit": "node --test tests/unit.test.js",
-    "test": "node --test --test-concurrency=1 tests/unit.test.js tests/sellerRank.test.js tests/security.test.js tests/auth.test.js tests/push.test.js tests/splitpay.test.js tests/sellers.test.js tests/shopride.test.js tests/shopride-mpesa.test.js tests/stores.test.js tests/maps.test.js tests/fieldteam-docs.test.js tests/firstscreen-road.test.js tests/ride.test.js tests/roles.test.js",
+    "test": "node --test --test-concurrency=1 tests/unit.test.js tests/aiGuard.test.js tests/sellerRank.test.js tests/security.test.js tests/auth.test.js tests/push.test.js tests/splitpay.test.js tests/sellers.test.js tests/shopride.test.js tests/shopride-mpesa.test.js tests/stores.test.js tests/maps.test.js tests/fieldteam-docs.test.js tests/firstscreen-road.test.js tests/ride.test.js tests/roles.test.js",
     "test:push": "node --test --test-concurrency=1 tests/push.test.js",
     "test:splitpay": "node --test --test-concurrency=1 tests/splitpay.test.js",
     "test:sellers": "node --test --test-concurrency=1 tests/sellers.test.js",
@@ -33,6 +33,7 @@
   "description": "",
   "dependencies": {
     "@anthropic-ai/sdk": "^1.8.0",
+    "@socket.io/redis-adapter": "^8.3.0",
     "axios": "^1.21.1",
     "bcryptjs": "^3.0.3",
     "compression": "^1.8.2",
@@ -41,20 +42,20 @@
     "express": "^5.3.0",
     "express-rate-limit": "^8.7.4",
     "google-auth-library": "^11.3.4",
+    "helmet": "^8.3.0",
+    "ioredis": "^5.11.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.12.1",
     "morgan": "^1.12.1",
     "multer": "^2.5.0",
     "nodemailer": "^10.5.0",
+    "rate-limit-redis": "^6.0.2",
     "socket.io": "^4.8.4",
-    "helmet": "^8.3.0",
-    "ioredis": "^5.11.1",
-    "@socket.io/redis-adapter": "^8.3.0",
-    "rate-limit-redis": "^6.0.2"
+    "zod": "^4.1.12"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14",
-    "ioredis-mock": "^8.13.1"
+    "ioredis-mock": "^8.13.1",
+    "nodemon": "^3.1.14"
   },
   "type": "commonjs"
 }

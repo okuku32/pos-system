@@ -140,7 +140,7 @@ export default function AiSearch({ compact = false, header = false }) {
       <Link to={`/market/item/${listing.slug}`} onClick={() => setOpen(false)}>
         <span className="mk-ai-rank">{number}</span>
         <span className="mk-ai-img">{listing.image ? <img src={imgUrl(listing.image)} alt="" loading="lazy" /> : catIcon(listing.category)}</span>
-        <span className="mk-ai-title"><b>{listing.title}</b><small>{[listing.area, listing.county].filter(Boolean).join(', ')}{listing.buyNow ? ' · 🛒 buy online' : ''}</small></span>
+        <span className="mk-ai-title"><b>{listing.title}</b><small>{[listing.area, listing.county].filter(Boolean).join(', ')}{listing.buyNow ? ' · 🛒 buy online' : ''}</small>{listing.aiReason && <small className="mk-ai-reason">✨ {listing.aiReason}</small>}</span>
         <span className="mk-ai-price">{priceText(listing.price)}{best && <small>cheapest</small>}</span>
       </Link>
     </li>
@@ -240,7 +240,7 @@ export default function AiSearch({ compact = false, header = false }) {
                     {exact.length > 0 && (
                       <>
                         <p className="mk-ai-sub">{res.exact} match{res.exact === 1 ? '' : 'es'}{res.range && exact.length > 1 ? `, from ${priceText(exact[0].price)} to ${priceText(exact[exact.length - 1].price)}` : ''}</p>
-                        <ol className="mk-ai-list">{exact.map((item, index) => row(item, index + 1, index === 0 && !!res.cheapest))}</ol>
+                        <ol className="mk-ai-list">{exact.map((item, index) => row(item, index + 1, !!res.cheapest && item._id === res.cheapest._id))}{/* by id: the AI may have reordered the list */}</ol>
                       </>
                     )}
                     {!exact.length && res.outside && (

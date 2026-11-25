@@ -1510,6 +1510,8 @@ a.mk-shop-badge.k-market:hover { text-decoration: underline; }
 .mk-ai-title { display: grid; gap: 2px; min-width: 0; }
 .mk-ai-title b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; }
 .mk-ai-title small { color: var(--os-muted); font-size: 13.5px; }
+/* why Smart Search picked this ad (text from the AI, rendered as plain text by React) */
+.mk-ai-title small.mk-ai-reason { color: var(--os-brand); font-weight: 600; }
 .mk-ai-price { display: grid; text-align: right; font-weight: 800; white-space: nowrap; }
 .mk-ai-price small { color: var(--os-brand-dark, #c2410c); font-size: 12.5px; font-weight: 700; }
 @media (min-width: 761px) { .mk-ai-sheet { align-items: center; } .mk-ai-panel { border-radius: 22px; } }
