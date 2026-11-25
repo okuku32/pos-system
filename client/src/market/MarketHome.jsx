@@ -168,8 +168,8 @@ export default function MarketHome() {
       )}
       <section className="mk-hero">
         <div className="mk-hero-inner">
-          <p className="mk-hero-tagline">Sell fast · Buy smart · Pay safe</p>
-          <h1>Buy and sell <span>seamlessly</span> with <KapuName light /></h1>
+          {/* one short line, same as the welcome page: "Soko mkononi" = the market in your hand */}
+          <h1><span>Soko mkononi</span> with <KapuName light /></h1>
           <div ref={heroSearch}><SearchBox big /></div>
         </div>
       </section>
