@@ -966,6 +966,13 @@ i.os-note-sw { font-size: 15px; font-weight: 600; }
 .os-about-hero h1 { font-size: clamp(34px, 5.4vw, 60px); line-height: 1.05; letter-spacing: -0.02em; margin: 18px 0 16px; max-width: 760px; }
 .os-about-hero h1 em { font-style: normal; color: #ff8a3d; }
 .os-about-lead { font-size: clamp(16px, 1.8vw, 19px); line-height: 1.6; color: #d7dbe3; max-width: 680px; margin: 0 0 10px; }
+/* Lucide line icons on the About page: brand orange inside their tiles, centred like the emojis they replaced */
+.os-about-figures span, .os-about-service-icon, .os-about-trust li > span, .os-about-markets-col li > span, .os-launch-cards span { color: var(--os-brand); }
+.os-about-figures span, .os-about-markets-col li > span { display: flex; justify-content: center; }
+.os-about-markets-col li > span { padding-top: 2px; }
+.os-launch-cards span { display: block; line-height: 0; }
+.os-about-h3-icon { color: var(--os-brand); vertical-align: -3px; margin-right: 8px; }
+.os-about .os-btn svg { flex: none; }
 .os-about-tagline { font-weight: 800; color: #ffb48a; margin: 0 0 26px; letter-spacing: 0.01em; }
 .os-about-ctas { display: flex; flex-wrap: wrap; gap: 12px; }
 .os-btn.os-about-btn-light { background: #fff; color: var(--os-ink); }

@@ -1,9 +1,15 @@
-// About us (/about): who we are and everything we do, at a glance, for buyers, sellers and people who'd like to work
-// with us. The figures are live (GET /api/market/about-stats) and only shown once they're big enough to impress;
-// until then the strip shows our promises instead.
+// About us (/about, and the front page "/" before the launch): what we offer first, then how it works, why it's
+// safe, and how to join. Kept short on purpose: one line per point, details live on the pages each card links to.
+// Icons are Lucide line icons (lucide-react), not emojis, so they look the same on every phone.
+// The figures are live (GET /api/market/about-stats) and only shown once they're big enough to impress; until then
+// the strip shows our promises instead.
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { SiteName, TextWithSiteName } from '../components/BrandName';
+import {
+  ShoppingBag, ShieldCheck, Truck, Package, Wallet, Factory, BadgeCheck, MapPin, Sparkles, Gift, Handshake, Flag,
+  ShoppingCart, Store, Users, Star, MessageCircle, LifeBuoy, Megaphone, Smartphone, Search, Camera, MessagesSquare,
+} from 'lucide-react';
+import { SiteName } from '../components/BrandName';
 import { rememberBrowse } from './browse';
 import { useAboutTour } from './aboutTour';
 import { STORE_INFO } from './storeInfo';
@@ -21,39 +27,29 @@ const aboutStats = () => {
   return statsAsked;
 };
 
-// what we do: the headline services, each with a link to try it
+// what we offer: the first thing on the page, one line each, every card opens the service
 const SERVICES = [
-  { icon: '🛍️', title: 'Buy & sell anything', text: 'Phones, cars, land, furniture, fashion, fresh produce and more. Posting an ad is free and takes a minute.', to: '/market/search', cta: 'Browse the marketplace' },
-  { icon: '🔒', title: 'Pay safely with mobile banking', text: 'Pay with M-Pesa or cash on delivery. Safe mobile payment is guaranteed on every order you pay through us.', to: '/help', cta: 'How payment works' },
-  { icon: '🏍️', title: 'Delivery by trained riders', text: 'ID-checked, trained riders bring your order to your door, with live tracking and an arrival time you can see.', to: '/market/search?buyNow=1', cta: 'Shop items to buy online' },
-  { icon: '🛵', title: 'Ride with us', text: 'Send a parcel anywhere in Nairobi by bike, 4-seater car or pickup. See the price upfront, the nearest rider collects it, and you track it live.', to: '/ride-with-us', cta: 'Send a parcel' },
-  { icon: '🛡️', title: 'Safe deal for second-hand items', text: 'Used phones, laptops and more are verified at a partner shop before the seller is paid. No more fake or faulty goods.', to: '/verify-centres', cta: 'Find a verification centre' },
-  { icon: '🏭', title: 'Wholesale & importers', text: 'Bulk prices from wholesalers, and importers of goods from China, Dubai and beyond, for shops and resellers.', to: '/wholesale', cta: 'See wholesale prices' },
-  { icon: '🐢', title: 'Lipa Pole Pole', text: 'Pay for phones, TVs and furniture bit by bit. Your item is reserved from the first deposit.', to: '/lipa-pole-pole', cta: 'How Lipa Pole Pole works' },
-  { icon: '✨', title: 'Smart AI search', text: 'Ask in your own words, in English or Kiswahili: “cheapest rice wholesaler near me”. We rank sellers on price, reliability and successful deliveries.', to: '/market/search', cta: 'Try it now' },
-  { icon: '📍', title: 'Sellers & markets near you', text: 'Mama mbogas, boutiques, chemists, wholesalers and markets around you, with distance, directions and contacts.', to: '/markets-near-me', cta: 'Explore near me' },
+  { Icon: ShoppingBag, title: 'Buy & sell anything', text: 'Phones, cars, land, furniture, fresh produce and more. Posting an ad is free.', to: '/market/search', cta: 'Browse the marketplace' },
+  { Icon: ShieldCheck, title: 'Safe M-Pesa payment', text: 'Pay with M-Pesa or cash on delivery. Safe payment is guaranteed on every order.', to: '/help', cta: 'How payment works' },
+  { Icon: Truck, title: 'Delivery to your door', text: 'Trained, ID-checked riders bring your order, with live tracking.', to: '/market/search?buyNow=1', cta: 'Shop and get it delivered' },
+  { Icon: Package, title: 'Ride with us', text: 'Send a parcel anywhere in Nairobi by bike, car or pickup, priced upfront.', to: '/ride-with-us', cta: 'Send a parcel' },
+  { Icon: Wallet, title: 'Lipa Pole Pole', text: 'Take home phones, TVs and furniture now and pay bit by bit.', to: '/lipa-pole-pole', cta: 'How it works' },
+  { Icon: Factory, title: 'Wholesale & imports', text: 'Bulk prices from wholesalers and importers, for shops and resellers.', to: '/wholesale', cta: 'See wholesale prices' },
+  { Icon: BadgeCheck, title: 'Verified second-hand', text: 'Used phones and laptops are checked at a partner shop before the seller is paid.', to: '/verify-centres', cta: 'Find a verification centre' },
+  { Icon: MapPin, title: 'Shops & markets near you', text: 'Traders, chemists and markets around you, with directions and contacts.', to: '/markets-near-me', cta: 'Explore near me' },
+  { Icon: Sparkles, title: 'Smart search', text: 'Ask in your own words, in English or Kiswahili, and find the best deal.', to: '/market/search', cta: 'Try it now' },
 ];
 
-// 🏬 physical market digitisation: what a market trader gets, what a buyer gets, and how a market goes online
+// markets online: three gains for traders, three for buyers (the details are on each market's page)
 const TRADER_GAINS = [
-  ['🏪', 'A free online shop in minutes', 'Snap your stock, set your prices, and your stall is pinned inside your market, so buyers know exactly where to find you.'],
-  ['📣', 'Customers far beyond your stall', 'Your shop shows on your market’s page, in “sellers near me” and in search across Kenya: not just to the people who walk past.'],
-  ['📲', 'Paid safely, straight to you', 'M-Pesa Till, Paybill, Pochi la Biashara or cash on delivery. Safe mobile payment is guaranteed on every order.'],
-  ['🛵', 'We deliver for you', 'Our trained riders collect from your stall and bring it to the buyer. You keep selling while they ride.'],
-  ['📈', 'Run your business like a pro', 'Today’s orders and sales in your Seller hub, and a free POS dashboard: best sellers, busy hours and stock alerts.'],
-  ['⭐', 'Stand out from the crowd', 'Boost your whole business for KSh 200 a month: every ad first in search, and your stall first on your market’s page.'],
+  [Store, 'A free online shop, linked to your stall', 'Buyers across Kenya find you, not just those who walk past.'],
+  [Smartphone, 'Paid safely, straight to you', 'M-Pesa Till, Paybill, Pochi la Biashara or cash on delivery.'],
+  [Megaphone, 'We deliver while you keep selling', 'Our riders collect from your stall and take it to the buyer.'],
 ];
 const BUYER_GAINS = [
-  ['🔎', 'A whole market on your phone', 'Walk Gikomba, Wakulima or Toi from home: compare prices stall by stall, without the crowds or the bargaining in the sun.'],
-  ['🧑‍💼', 'A trusted eye in the market', 'Our shopping agent stationed in that market checks the item, size and quality before it’s sent (optional, KSh 200).'],
-  ['📸', 'Can’t see it listed? Send a photo', 'Snap what you want and send it to the trader: they post it for you to add to your cart.'],
-  ['🏍️', 'Delivered to your door', 'From the stall to you, with live tracking and a fare by distance, like Uber or Bolt.'],
-];
-const MARKET_STEPS = [
-  ['We list the market', 'Its name, location and sections go on Kapu, with its own page buyers can search and share.'],
-  ['Traders join for free', 'Each trader opens a shop, pins their stall and posts their stock in minutes, from their phone.'],
-  ['Agents are stationed', 'Trained shopping agents in the market check orders and help traders get online.'],
-  ['Buyers shop, we deliver', 'Orders come from across the city and the country; our riders bring them to the buyer’s door.'],
+  [Search, 'A whole market on your phone', 'Compare Gikomba, Wakulima or Toi prices stall by stall, from home.'],
+  [Camera, 'Can’t find it? Send a photo', 'Snap what you want and the trader posts it for you.'],
+  [Truck, 'Delivered to your door', 'From the stall to you, with live tracking.'],
 ];
 
 // the live figures of markets online (only once they're big enough to say), and a few markets to visit
@@ -83,27 +79,27 @@ function MarketsOnline() {
 }
 
 const TRUST = [
-  ['✔', 'Verified sellers', 'Our team checks sellers’ identity. Look for the ✔ badge.'],
-  ['⭐', 'Real reviews only', 'Only buyers whose order was delivered can review a seller, so ratings can’t be faked.'],
-  ['📞', 'Contacts protected', 'Sellers’ numbers are shown only to signed-in members, never to bots or scrapers.'],
-  ['💬', 'Chat & call in the app', 'Talk to sellers and riders in the app, free over the internet, without sharing your number.'],
-  ['🚩', 'Scams removed fast', 'Report any ad in one tap. Our team reviews every report.'],
-  ['🆘', 'Real people to help', 'Live chat and WhatsApp support, every day.'],
+  [BadgeCheck, 'Verified sellers', 'Our team checks sellers’ identity. Look for the badge.'],
+  [Star, 'Real reviews only', 'Only buyers who received their order can leave a review.'],
+  [MessageCircle, 'Chat without sharing your number', 'Talk to sellers and riders in the app, free.'],
+  [Flag, 'Scams removed fast', 'Report any ad in one tap; our team checks every report.'],
+  [LifeBuoy, 'Real people to help', 'Live chat and WhatsApp support, every day.'],
+  [ShieldCheck, 'Your money protected', 'Safe payment is guaranteed on every order paid through us.'],
 ];
 
 const BUY_STEPS = [
-  ['Find it', 'Search, browse or just ask our AI in your own words.'],
-  ['Pay safely', 'M-Pesa or cash on delivery. Safe mobile payment is guaranteed.'],
-  ['Get it delivered', 'Track your rider live, or pick it up. Not right? We’ve got your back.'],
+  ['Find it', 'Search, browse or just ask in your own words.'],
+  ['Pay safely', 'M-Pesa or cash on delivery.'],
+  ['Get it delivered', 'Track your rider live, or pick it up.'],
 ];
 const SELL_STEPS = [
-  ['Post for free', 'Photos, a price and your location. Your ad is live in minutes.'],
-  ['Sell online', 'Tick “Sell online” and buyers can order and pay straight away.'],
-  ['Get paid', 'Cash on delivery goes straight to you; M-Pesa is sent to you after delivery.'],
+  ['Post for free', 'Photos, a price and your location: live in minutes.'],
+  ['Sell online', 'Buyers order and pay straight away.'],
+  ['Get paid', 'Cash on delivery, or M-Pesa sent to you after delivery.'],
 ];
 
 // the parts of the page the tour glides through, in order
-const TOUR_SECTIONS = '.os-about-figures, .os-about-mission, .os-about-section, .os-about-join, .os-launch-join, .os-about-contact';
+const TOUR_SECTIONS = '.os-about-figures, .os-about-section, .os-about-mission, .os-about-join, .os-launch-join, .os-about-contact';
 
 // "1,234" → "1,200+": a round, honest figure
 const roundDown = (value) => {
@@ -118,30 +114,34 @@ function Figures() {
   }, []);
   // only the figures that are big enough to be worth saying
   const figures = stats ? [
-    stats.ads >= 100 && ['🛒', roundDown(stats.ads), 'live ads'],
-    stats.sellers >= 20 && ['🏪', roundDown(stats.sellers), 'sellers'],
-    stats.delivered >= 50 && ['📦', roundDown(stats.delivered), 'orders delivered'],
-    stats.counties >= 5 && ['🗺️', String(stats.counties), 'counties'],
-    stats.markets >= 3 && ['🏬', roundDown(stats.markets), 'markets listed'],
-    stats.team >= 5 && ['🏍️', roundDown(stats.team), 'riders & agents'],
+    stats.ads >= 100 && [ShoppingCart, roundDown(stats.ads), 'live ads'],
+    stats.sellers >= 20 && [Store, roundDown(stats.sellers), 'sellers'],
+    stats.delivered >= 50 && [Package, roundDown(stats.delivered), 'orders delivered'],
+    stats.counties >= 5 && [MapPin, String(stats.counties), 'counties'],
+    stats.markets >= 3 && [Store, roundDown(stats.markets), 'markets listed'],
+    stats.team >= 5 && [Users, roundDown(stats.team), 'riders & agents'],
   ].filter(Boolean) : [];
   // a young marketplace: our promises instead of small numbers
   const promises = [
-    ['🆓', 'Free', 'to post an ad'],
-    ['🔒', 'Safe', 'mobile payment guaranteed'],
-    // the promise that wins people over: hand us the shopping, we bring it home (replaces the old "optional inspection")
-    ['🤝', 'Trust us', 'with your shopping: we deliver it to your door'],
-    ['🇰🇪', '47', 'counties to buy & sell in'],
+    [Gift, 'Free', 'to post an ad'],
+    [ShieldCheck, 'Safe', 'mobile payment guaranteed'],
+    [Handshake, 'Trust us', 'with your shopping: we deliver it to your door'],
+    [MapPin, '47', 'counties to buy & sell in'],
   ];
   const list = figures.length >= 3 ? figures.slice(0, 4) : promises;
   return (
     <section className="os-about-figures" aria-label={figures.length >= 3 ? 'Our marketplace in numbers' : 'Our promises'}>
-      {list.map(([icon, value, label]) => (
-        <div key={label}><span aria-hidden="true">{icon}</span><b>{value}</b><small>{label}</small></div>
+      {list.map(([FigureIcon, value, label]) => (
+        <div key={label}><span aria-hidden="true"><FigureIcon size={24} /></span><b>{value}</b><small>{label}</small></div>
       ))}
     </section>
   );
 }
+
+// a list of [Icon, title, text] points (trust, market gains)
+const IconPoints = ({ points, iconSize = 20 }) => points.map(([PointIcon, title, text]) => (
+  <li key={title}><span aria-hidden="true"><PointIcon size={iconSize} /></span><div><b>{title}</b><small>{text}</small></div></li>
+));
 
 // launch: the front page for visitors who haven't signed up ("/"): an invitation to join before the official launch
 export default function AboutPage({ launch = false, onExplore }) {
@@ -212,77 +212,21 @@ export default function AboutPage({ launch = false, onExplore }) {
       <div className="os-about-wrap">
         <Figures />
 
-        {/* mission */}
-        <section className="os-about-mission">
-          <div>
-            <span className="os-about-kicker">Why we exist</span>
-            <h2>Buying online in Kenya should never mean being conned.</h2>
-          </div>
-          <div className="os-about-why">
-            <p className="os-about-why-lead">Too many Kenyans have paid for a phone that never arrived, or collected goods that were not what they ordered. <SiteName /> exists to put an end to that.</p>
-            <p className="os-about-why-local">We understand the dynamics of our local market, and that is exactly why we created{' '}
-              <Link to="/" className="os-about-namelink" title={`Go to the ${name} marketplace`} onClick={(event) => { rememberBrowse(); if (launch && onExplore) { event.preventDefault(); onExplore(); } }}><SiteName /></Link>.</p>
-            <p>We bring every kind of seller online, from the mama mboga next door to the country’s largest wholesalers and importers, and we add the three things online shopping in Kenya has been missing:</p>
-            <ul className="os-about-pillars">
-              <li><span aria-hidden="true">🔒</span><div><b>Secure payment</b><small>Safe mobile payment is guaranteed on every order paid through us.</small></div></li>
-              <li><span aria-hidden="true">🏍️</span><div><b>Dependable delivery</b><small>Trained, ID-checked riders, with live tracking to your door.</small></div></li>
-              <li><span aria-hidden="true">🔍</span><div><b>Goods checked by people</b><small>Our shopping agents verify the item, its quality and quantity whenever you ask.</small></div></li>
-            </ul>
-            <p>We also bring the businesses you rely on every day within easy reach: market traders, shops, chemists and wholesalers near you, complete with directions and contacts. <b>The product you need is only one click away, without the hassle.</b></p>
-            <figure className="os-about-promise">
-              <figcaption>Our promise</figcaption>
-              <blockquote>Entrust us with your shopping and delivery, and we guarantee that your goods reach you <b>on time and safely</b>.</blockquote>
-              <span className="os-about-promise-sign">The <SiteName /> team</span>
-            </figure>
-          </div>
-        </section>
-
-        {/* what we do */}
-        <section className="os-about-section" aria-labelledby="about-what">
+        {/* what we offer: first, so visitors see at once everything they can do here */}
+        <section className="os-about-section" id="offer" aria-labelledby="about-what">
           <div className="os-about-head">
-            <span className="os-about-kicker">What we do</span>
-            <h2 id="about-what">Everything you need to buy and sell with confidence</h2>
+            <span className="os-about-kicker">What we offer</span>
+            <h2 id="about-what">Everything you need, in one place</h2>
           </div>
           <div className="os-about-services">
-            {SERVICES.map((service) => (
-              <Link key={service.title} to={service.to} className="os-about-service">
-                <span className="os-about-service-icon" aria-hidden="true">{service.icon}</span>
-                <b>{service.title}</b>
-                <p>{service.text}</p>
-                <span className="os-about-service-cta">{service.cta} →</span>
+            {SERVICES.map(({ Icon: ServiceIcon, title, text, to, cta }) => (
+              <Link key={title} to={to} className="os-about-service">
+                <span className="os-about-service-icon" aria-hidden="true"><ServiceIcon size={24} /></span>
+                <b>{title}</b>
+                <p>{text}</p>
+                <span className="os-about-service-cta">{cta} →</span>
               </Link>
             ))}
-          </div>
-        </section>
-
-        {/* 🏬 physical market digitisation */}
-        <section className="os-about-section os-about-markets" id="markets" aria-labelledby="about-markets">
-          <div className="os-about-head">
-            <span className="os-about-kicker">Physical market digitisation</span>
-            <h2 id="about-markets">We’re bringing Kenya’s markets online</h2>
-          </div>
-          <div className="os-about-markets-intro">
-            <p>Gikomba, Wakulima, Toi, Muthurwa, Kariakor, Kongowea… Kenya’s markets feed and clothe millions of us. Yet for generations a trader’s customers have been limited to the people who happen to walk past their stall.</p>
-            <p><b><SiteName /> digitises the physical market.</b> We bring market traders on board, give every one of them a free online shop linked to their market and stall, and put them in front of a far larger audience: buyers across the city and the whole country, shopping from their phones. The market stays the market, with its prices, its variety and its people. It simply reaches everyone now.</p>
-          </div>
-          <div className="os-about-markets-cols">
-            <div className="os-about-markets-col">
-              <h3>🏪 For market traders</h3>
-              <ul>{TRADER_GAINS.map(([icon, title, text]) => <li key={title}><span aria-hidden="true">{icon}</span><div><b>{title}</b><small>{text}</small></div></li>)}</ul>
-            </div>
-            <div className="os-about-markets-col">
-              <h3>🛒 For buyers</h3>
-              <ul>{BUYER_GAINS.map(([icon, title, text]) => <li key={title}><span aria-hidden="true">{icon}</span><div><b>{title}</b><small>{text}</small></div></li>)}</ul>
-            </div>
-          </div>
-          <div className="os-about-markets-steps">
-            <h3>How a market goes online</h3>
-            <ol>{MARKET_STEPS.map(([step, text], index) => <li key={step}><span className="os-about-num">{index + 1}</span><div><b>{step}</b><small><TextWithSiteName text={text} /></small></div></li>)}</ol>
-          </div>
-          <MarketsOnline />
-          <div className="os-about-markets-ctas">
-            <Link className="os-btn os-btn-brand os-btn-lg" to="/signup?as=seller">🏪 Sell in a market? Open your free shop</Link>
-            <Link className="os-btn os-btn-dark os-btn-lg" to="/markets-near-me">📍 Explore markets near you</Link>
           </div>
         </section>
 
@@ -293,9 +237,9 @@ export default function AboutPage({ launch = false, onExplore }) {
             <h2 id="about-how">Simple for buyers. Simple for sellers.</h2>
           </div>
           <div className="os-about-how">
-            {[['🛒 For buyers', BUY_STEPS, '/market/search', 'Start shopping'], ['🏪 For sellers', SELL_STEPS, '/market/sell', 'Post your first ad']].map(([title, steps, to, cta]) => (
+            {[[ShoppingCart, 'For buyers', BUY_STEPS, '/market/search', 'Start shopping'], [Store, 'For sellers', SELL_STEPS, '/market/sell', 'Post your first ad']].map(([HeadingIcon, title, steps, to, cta]) => (
               <div key={title} className="os-about-howcol">
-                <h3>{title}</h3>
+                <h3><HeadingIcon size={20} aria-hidden="true" className="os-about-h3-icon" />{title}</h3>
                 <ol>
                   {steps.map(([step, text], index) => (
                     <li key={step}><span className="os-about-num">{index + 1}</span><div><b>{step}</b><small>{text}</small></div></li>
@@ -313,11 +257,50 @@ export default function AboutPage({ launch = false, onExplore }) {
             <span className="os-about-kicker">Your safety comes first</span>
             <h2 id="about-trust">Why people trust <SiteName /></h2>
           </div>
-          <ul>
-            {TRUST.map(([icon, title, text]) => (
-              <li key={title}><span aria-hidden="true">{icon}</span><div><b>{title}</b><small>{text}</small></div></li>
-            ))}
-          </ul>
+          <ul><IconPoints points={TRUST} /></ul>
+        </section>
+
+        {/* physical markets online */}
+        <section className="os-about-section os-about-markets" id="markets" aria-labelledby="about-markets">
+          <div className="os-about-head">
+            <span className="os-about-kicker">Markets online</span>
+            <h2 id="about-markets">We’re bringing Kenya’s markets online</h2>
+          </div>
+          <div className="os-about-markets-intro">
+            <p>Gikomba, Wakulima, Toi, Kongowea… Every trader gets a free online shop linked to their stall, so buyers across Kenya can shop the market from their phones.</p>
+          </div>
+          <div className="os-about-markets-cols">
+            <div className="os-about-markets-col">
+              <h3><Store size={20} aria-hidden="true" className="os-about-h3-icon" />For market traders</h3>
+              <ul><IconPoints points={TRADER_GAINS} /></ul>
+            </div>
+            <div className="os-about-markets-col">
+              <h3><ShoppingCart size={20} aria-hidden="true" className="os-about-h3-icon" />For buyers</h3>
+              <ul><IconPoints points={BUYER_GAINS} /></ul>
+            </div>
+          </div>
+          <MarketsOnline />
+          <div className="os-about-markets-ctas">
+            <Link className="os-btn os-btn-brand os-btn-lg" to="/signup?as=seller"><Store size={18} aria-hidden="true" /> Open your free market shop</Link>
+            <Link className="os-btn os-btn-dark os-btn-lg" to="/markets-near-me"><MapPin size={18} aria-hidden="true" /> Explore markets near you</Link>
+          </div>
+        </section>
+
+        {/* why we exist: short, after the visitor has seen what we offer */}
+        <section className="os-about-mission">
+          <div>
+            <span className="os-about-kicker">Why we exist</span>
+            <h2>Buying online in Kenya should never mean being conned.</h2>
+          </div>
+          <div className="os-about-why">
+            <p className="os-about-why-lead">Too many Kenyans have paid for goods that never arrived, or that were not what they ordered. We understand our local market, and that is exactly why we created{' '}
+              <Link to="/" className="os-about-namelink" title={`Go to the ${name} marketplace`} onClick={(event) => { rememberBrowse(); if (launch && onExplore) { event.preventDefault(); onExplore(); } }}><SiteName /></Link>.</p>
+            <figure className="os-about-promise">
+              <figcaption>Our promise</figcaption>
+              <blockquote>Entrust us with your shopping and delivery, and we guarantee that your goods reach you <b>on time and safely</b>.</blockquote>
+              <span className="os-about-promise-sign">The <SiteName /> team</span>
+            </figure>
+          </div>
         </section>
 
         {/* work with us */}
@@ -325,7 +308,7 @@ export default function AboutPage({ launch = false, onExplore }) {
           <div>
             <span className="os-about-kicker light">Grow with us</span>
             <h2>Earn as a rider, shopping agent or partner shop</h2>
-            <p>Deliver orders on your motorbike or on foot, shop and inspect for our customers, or verify second-hand items at your shop. Weekly pay straight to your M-Pesa.</p>
+            <p>Deliver orders, shop for our customers, or verify second-hand items at your shop. Weekly pay to your M-Pesa.</p>
           </div>
           <Link className="os-btn os-btn-brand os-btn-lg" to="/work">Join our team →</Link>
         </section>
@@ -339,9 +322,9 @@ export default function AboutPage({ launch = false, onExplore }) {
               <p>Set up early and be ready on day one.</p>
             </div>
             <div className="os-launch-cards">
-              <div><span aria-hidden="true">🛍️</span><b>Buyers</b><small>Save the deals you like, follow sellers near you and be first to know when we launch.</small><Link className="os-btn os-btn-brand" to="/signup">Join as a buyer</Link></div>
-              <div><span aria-hidden="true">🏪</span><b>Sellers</b><small>Open your shop, post your items for free and get your first buyers from day one.</small><Link className="os-btn os-btn-dark" to="/signup?as=seller">Join as a seller</Link></div>
-              <div><span aria-hidden="true">🏍️</span><b>Riders & agents</b><small>Deliver orders or check goods for buyers in your market. Weekly pay to your M-Pesa.</small><Link className="os-btn os-btn-ghost" to="/work">Join our team</Link></div>
+              <div><span aria-hidden="true"><ShoppingBag size={28} /></span><b>Buyers</b><small>Save deals, follow sellers near you and be first to know when we launch.</small><Link className="os-btn os-btn-brand" to="/signup">Join as a buyer</Link></div>
+              <div><span aria-hidden="true"><Store size={28} /></span><b>Sellers</b><small>Open your shop, post your items for free and get buyers from day one.</small><Link className="os-btn os-btn-dark" to="/signup?as=seller">Join as a seller</Link></div>
+              <div><span aria-hidden="true"><Truck size={28} /></span><b>Riders & agents</b><small>Deliver orders or check goods for buyers. Weekly pay to your M-Pesa.</small><Link className="os-btn os-btn-ghost" to="/work">Join our team</Link></div>
             </div>
             <p className="os-launch-explore">Just looking? <button type="button" className="mk-linkbtn" onClick={onExplore}>Explore the marketplace →</button></p>
           </section>
@@ -356,7 +339,7 @@ export default function AboutPage({ launch = false, onExplore }) {
           </div>
           <div className="os-about-contact-row">
             <Link className="os-btn os-btn-brand os-btn-lg" to="/contact">Contact us →</Link>
-            <button type="button" className="os-btn os-btn-ghost os-btn-lg" onClick={openSupportChat}>💬 Live chat</button>
+            <button type="button" className="os-btn os-btn-ghost os-btn-lg" onClick={openSupportChat}><MessagesSquare size={18} aria-hidden="true" /> Live chat</button>
           </div>
         </section>
       </div>
